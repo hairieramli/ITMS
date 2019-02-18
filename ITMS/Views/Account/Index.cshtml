@@ -1,0 +1,46 @@
+﻿@model ITMS.Models.UserModel
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="splash-container">
+    <div class="card ">
+        <div class="card-header text-center"><a href="../index.html"><img class="logo-img" src="../assets/images/logo.png" alt="logo"></a><span class="splash-description">Please enter your user information.</span></div>
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                <div class="form-group">
+                    @Html.TextBoxFor(model => model.UserName, new { @class = "form-control form-control-lg", @placeholder = "Email" })
+                    @*<input class="form-control form-control-lg" id="username" type="text" placeholder="Username" autocomplete="off">*@
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(model => model.Password, new { @class = "form-control form-control-lg", @placeholder = "Password", @type = "password" })
+                    @*<input class="form-control form-control-lg" id="password" type="password" placeholder="Password">*@
+                </div>
+                @*<div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox"><span class="custom-control-label">Remember Me</span>
+                </label>
+            </div>*@
+                <div class="form-group">
+                    @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
+                    <br />
+                    @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                    <span id="notValid" style="color:red;">@ViewBag.NotValidUser</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Sign in</button>
+            }
+
+        </div>
+        <div class="card-footer bg-white p-0  ">
+            <div class="card-footer-item card-footer-item-bordered">
+                <a href="#" class="footer-link">Create An Account</a>
+            </div>
+            <div class="card-footer-item card-footer-item-bordered">
+                <a href="#" class="footer-link">Forgot Password</a>
+            </div>
+        </div>
+    </div>
+</div>
+

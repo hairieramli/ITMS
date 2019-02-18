@@ -1,0 +1,171 @@
+﻿@model ITMS.Models.InventoryModel
+@{
+    ViewBag.Title = "Inventory";
+    Layout = "~/Views/Shared/_Layout2.cshtml";
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#newbtn").click(function () {
+            $("#add_inv").show();
+            $("#edit_inv").hide();
+        });
+
+        @if(TempData["return_value"] != null)
+        {
+            if((int)TempData["return_value"] <= 0)
+            {
+                @:$("#add_inv").addClass("show");
+            }
+        }
+
+        @if(TempData["edit_value"] != null)
+        {
+            if((int)TempData["edit_value"] > 0)
+            {
+                @:$("#edit_inv").show();
+            }
+        }
+    }
+
+
+    );
+
+
+</script>
+<link href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
+<script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+@*<link href="~/Content/assets/vendor/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+<script src="~/Content/assets/vendor/datatables/js/dataTables.bootstrap4.min.js"></script>*@
+<div class="page-header">
+    <div class="pageheader-title">
+        <h2>@ViewBag.Title</h2>
+    </div>
+    <div class="page-breadcrumb">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#" class="breadcrumb-link">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Form Validations</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div>
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            <a id="newbtn" class="btn btn-app btn-info">
+                <i class="fa fa-edit"></i>
+                New Inventory
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        &nbsp;
+    </div>
+    <div id="add_inv" class="card collapse">
+        <h5 class="card-header">Add New Inventory</h5>
+        <div class="card-body">
+            @using (Html.BeginForm("Create", "Inventory", FormMethod.Post, new { @name = "FormInv" }))
+            {
+                <div class="form-group">
+                    <label class="col-form-label">Inventory Name</label>
+                    @Html.TextBox("invName", "", new { @class = "form-control", @required="required" })
+                </div>
+                <div class="form-group">
+                    <label class="col-form-label">Inventory Qty</label>
+                    @Html.TextBox("invQty", "", new { @class = "form-control", @type = "number", @required = "required" })
+                </div>
+                <div class="form-group">
+                    @if (TempData["return_value"] != null)
+                    {
+                        if ((int)TempData["return_value"] <= 0)
+                        {
+                            <span style="color:red;">Failed to add a new Inventory.</span>
+                        }
+                    }
+
+                </div>
+                <button type="submit" class="btn btn-primary" name="Submit">Add Inventory</button>
+            }
+        </div>
+
+    </div>
+    <div id="edit_inv" class="card collapse">
+        <h5 class="card-header">Inventory Details</h5>
+        <div class="card-body">
+            @using (Html.BeginForm("Edit", "Inventory", FormMethod.Post, new { @name = "FormEditInv" }))
+            {
+                @Html.HiddenFor(model => model.IDinv, "");
+                <div class="form-group">
+                    <label class="col-form-label">Inventory Name</label>
+                    @Html.TextBoxFor(model => model.InvName, "", new { @class = "form-control", @required = "required" })
+                </div>
+                <div class="form-group">
+                    <label class="col-form-label">Inventory Qty</label>
+                    @Html.TextBoxFor(model => model.InvQty, "", new { @class = "form-control", @type = "number", @required = "required" })
+                </div>
+                <div class="form-group">
+                    @if (TempData["edit_return_value"] != null)
+                    {
+                        if ((int)TempData["edit_return_value"] <= 0)
+                        {
+                            <span style="color:red;">Failed to save changes.</span>
+                        }
+                        else
+                        {
+                            <span style="color:green;">Saved Changes successfully.</span>
+                        }
+                    }
+
+                </div>
+                <button type="submit" class="btn btn-primary" name="Submit">Save Changes</button>
+                <a href="/Inventory/Delete/@(Model != null ? Model.IDinv:0)" class="btn btn-danger">Delete</a>
+            }
+        </div>
+
+    </div>
+    <div class="card">
+        <h5 class="card-header">Recent Orders</h5>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tblData" class="table" width="100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Inventory Name</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                </table>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        t = $('#tblData').DataTable({
+                            stateSave: true, "info": true, dom: "ftrip", "processing": true,
+                            "serverSide": true,
+                            "ajax": {
+                                "url": "/Inventory/List",
+                                "dataType": "json",
+                                "data": "data"
+                            }
+                            //"order": [[1, 'asc']], select: {
+                            //    style: 'single'
+                            //},
+                            //"scrollX": true,
+                            //"scrollCollapse": true
+                        });
+
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        &nbsp;
+    </div>
+
+</div>
+
+
+
+
+

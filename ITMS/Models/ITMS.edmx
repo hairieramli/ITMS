@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="ITMSModel1.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="tbl_inventory">
+          <Key>
+            <PropertyRef Name="IDinv" />
+          </Key>
+          <Property Name="IDinv" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="invName" Type="varchar(max)" />
+          <Property Name="invQty" Type="int" />
+        </EntityType>
+        <EntityType Name="tbl_report">
+          <Key>
+            <PropertyRef Name="IDrep" />
+          </Key>
+          <Property Name="IDrep" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserName" Type="varchar(max)" />
+          <Property Name="IDUser" Type="int" />
+          <Property Name="rep_desc" Type="varchar(max)" />
+          <Property Name="submittedDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="tbl_ticket">
+          <Key>
+            <PropertyRef Name="IDticket" />
+          </Key>
+          <Property Name="IDticket" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="rep_desc" Type="varchar(max)" />
+          <Property Name="task_type" Type="varchar" MaxLength="50" />
+          <Property Name="priority" Type="int" />
+          <Property Name="status" Type="varchar" MaxLength="50" />
+          <Property Name="TicketDate" Type="datetime" />
+        </EntityType>
+        <EntityContainer Name="ITMSModel1StoreContainer">
+          <EntitySet Name="tbl_inventory" EntityType="Self.tbl_inventory" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbl_report" EntityType="Self.tbl_report" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tbl_ticket" EntityType="Self.tbl_ticket" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="ITMSModel1" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="tbl_inventory">
+          <Key>
+            <PropertyRef Name="IDinv" />
+          </Key>
+          <Property Name="IDinv" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="invName" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="invQty" Type="Int32" />
+        </EntityType>
+        <EntityType Name="tbl_report">
+          <Key>
+            <PropertyRef Name="IDrep" />
+          </Key>
+          <Property Name="IDrep" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserName" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="IDUser" Type="Int32" />
+          <Property Name="rep_desc" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="submittedDate" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="tbl_ticket">
+          <Key>
+            <PropertyRef Name="IDticket" />
+          </Key>
+          <Property Name="IDticket" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="rep_desc" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="task_type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="priority" Type="Int32" />
+          <Property Name="status" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TicketDate" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityContainer Name="ITMSEntities1" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="tbl_inventory" EntityType="Self.tbl_inventory" />
+          <EntitySet Name="tbl_report" EntityType="Self.tbl_report" />
+          <EntitySet Name="tbl_ticket" EntityType="Self.tbl_ticket" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="ITMSModel1StoreContainer" CdmEntityContainer="ITMSEntities1">
+          <EntitySetMapping Name="tbl_inventory">
+            <EntityTypeMapping TypeName="ITMSModel1.tbl_inventory">
+              <MappingFragment StoreEntitySet="tbl_inventory">
+                <ScalarProperty Name="IDinv" ColumnName="IDinv" />
+                <ScalarProperty Name="invName" ColumnName="invName" />
+                <ScalarProperty Name="invQty" ColumnName="invQty" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbl_report">
+            <EntityTypeMapping TypeName="ITMSModel1.tbl_report">
+              <MappingFragment StoreEntitySet="tbl_report">
+                <ScalarProperty Name="IDrep" ColumnName="IDrep" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="IDUser" ColumnName="IDUser" />
+                <ScalarProperty Name="rep_desc" ColumnName="rep_desc" />
+                <ScalarProperty Name="submittedDate" ColumnName="submittedDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tbl_ticket">
+            <EntityTypeMapping TypeName="ITMSModel1.tbl_ticket">
+              <MappingFragment StoreEntitySet="tbl_ticket">
+                <ScalarProperty Name="IDticket" ColumnName="IDticket" />
+                <ScalarProperty Name="rep_desc" ColumnName="rep_desc" />
+                <ScalarProperty Name="task_type" ColumnName="task_type" />
+                <ScalarProperty Name="priority" ColumnName="priority" />
+                <ScalarProperty Name="status" ColumnName="status" />
+                <ScalarProperty Name="TicketDate" ColumnName="TicketDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
