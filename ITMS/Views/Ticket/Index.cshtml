@@ -1,70 +1,23 @@
-﻿@using ITMS.Models
-@model ITMS.Models.ReportModel
+﻿@model ITMS.Models.TicketModel
+
 @{
-    ViewBag.Title = "Report";
+    ViewBag.Title = "Ticket";
     Layout = "~/Views/Shared/_Layout2.cshtml";
 
 }
 <script type="text/javascript">
-
-    $(function () {
-        //function log(message) {
-        //    $("<div>").text(message).prependTo("#log");
-        //    $("#log").scrollTop(0);
-        //}
-        function split(val) {
-            return val.split(/,\s*/);
-        }
-        function extractLast(term) {
-            return split(term).pop();
-        }
-        $("#txt_emp").autocomplete({
-            source: function (request, response) {
-                $.ajax({
-                    url: "/Report/getTech",
-                    dataType: "jsonp",
-                    data: {
-                        term: request.term
-                    },
-                    success: function (data) {
-                        response(data);
-                    }
-                });
-            },
-            minLength: 3,
-            select: function (event, ui) {
-
-                $('#txt_emp').val(ui.item.value);
-                $('#hid_emp').val(ui.item.id);
-            }
-        });
-
-
-    });
-
-    //$(document).ready(function () {
-    //    var data = ["Boston Celtics", "Chicago Bulls", "Miami Heat", "Orlando Magic", "Atlanta Hawks", "Philadelphia Sixers", "New York Knicks", "Indiana Pacers", "Charlotte Bobcats", "Milwaukee Bucks", "Detroit Pistons", "New Jersey Nets", "Toronto Raptors", "Washington Wizards", "Cleveland Cavaliers"];
-        
-    //});
-
-    function genTicket() {
-        $("#edit_rep").hide();
-        $("#edit_tic").modal('show');
-    }
-
     $(document).ready(function () {
-        $("#newbtn").click(function () {
-            let el = document.getElementById("add_rep");
-            let inputs = el.getElementsByTagName("input");
+        //$("#newbtn").click(function () {
+        //    let el = document.getElementById("add_rep");
+        //    let inputs = el.getElementsByTagName("input");
 
-            for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].type=="text")
-                    inputs[i].value = "";
-            }
+        //    for (let i = 0; i < inputs.length; i++) {
+        //        if (inputs[i].type=="text")
+        //            inputs[i].value = "";
+        //    }
 
-            $("#add_rep").show();
-            $("#edit_rep").hide();
-        });
+        //    $("#edit_rep").hide();
+        //});
 
 
         @if(TempData["return_value"] != null)
@@ -123,23 +76,6 @@
                 @:$("#btnDelete").notify("Failed to remove Report", { position: "bottom", className:"error" });
             }
         }
-        else if(TempData["tic_return_value"] != null)
-        {
-            if(TempData["error"] != null)
-            {
-                @:$("#edit_tic").show();
-                @:$("#btnGenTic").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
-            }
-            else if((int)TempData["tic_return_value"] > 0)
-            {
-                @:$("#tblData").notify("Succesfully generated ticket for the report.", { position: "top center", className:"success", arrowShow:false});
-            }
-            else if ((int)TempData["del_return_value"] <= 0)
-            {
-                @:$("#edit_tic").show();
-                @:$("#btnGenTic").notify("Failed to remove Report", { position: "bottom", className:"error" });
-            }
-        }
     }
 
 
@@ -160,31 +96,31 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="#" class="breadcrumb-link">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Report</li>
+                <li class="breadcrumb-item active" aria-current="page">Ticket</li>
             </ol>
         </nav>
     </div>
 </div>
 <div>
-    <div class="row">
+    @*<div class="row">
         <div class="col-lg-3 col-xs-6">
             <a id="newbtn" class="btn btn-app btn-info">
                 <i class="fa fa-edit"></i>
                 New Report
             </a>
         </div>
-    </div>
+    </div>*@
     <div class="row">
         &nbsp;
     </div>
-    <div id="add_rep" class="card collapse">
+    @*<div id="add_rep" class="card collapse">
         <h5 class="card-header">Submit New Report</h5>
         <div class="card-body">
             @using (Html.BeginForm("Create", "Report", FormMethod.Post, new { @name = "FormRep" }))
             {
                 <div class="form-group">
                     <label class="col-form-label">Title</label>
-                    @Html.TextBox("rep_title", "", new { @id="txtTit", @class = "form-control", @required = "required" })
+                    @Html.TextBox("rep_title", "", new { @class = "form-control", @required = "required" })
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Description</label>
@@ -197,7 +133,7 @@
             }
         </div>
 
-    </div>
+    </div>*@
     <div id="edit_rep" class="card collapse">
         <h5 class="card-header">Report Details</h5>
         <div class="card-body">
@@ -213,57 +149,16 @@
                     <label class="col-form-label">Description</label>
                     @Html.TextAreaFor(model => model.rep_desc, 5, 10, new { @class = "form-control", @required = "required", @row = "5", @width = "100%" })
                 </div>
-                <div class="form-group">
+                @*<div class="form-group">
                     <label class="col-form-label">Submitted By</label>
                     @Html.Label("", Model != null ? Model.UserName : "", new { @class = "col-form-label", @style = "color:#3EC81F;font-family:arial;font-weight:bold" })
-                </div>
+                </div>*@
                 <div class="form-group">
                     <label class="col-form-label">Date</label>
-                    @Html.Label("", TempData["submittedDate"] != null ? TempData["submittedDate"].ToString() : "", new { @class = "col-form-label", @style = "color:#3EC81F;font-family:arial;font-weight:bold" })
+                    @Html.Label("", Model != null ? String.Format("{0:dd MMM yyy}", Model.submittedDate) : "", new { @class = "col-form-label", @style = "color:#3EC81F;font-family:arial;font-weight:bold" })
                 </div>
                 <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
                 <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Delete</a>
-                if (Model != null)
-                {
-                    if (Model.ticketStatus.ToString().ToLower() == "pending")
-                    {
-                        <button class="btn btn-success" type="button" onclick="genTicket();">Generate Ticket</button>
-                    }
-                }
-
-            }
-        </div>
-
-    </div>
-
-    <div id="edit_tic" aria-hidden="true" data-keyboard="false" class="card modal fade hide" style="overflow:hidden;margin-left:-30vw;margin-top:-30vh;width:50%;height:50%;position: absolute;
-   left: 50%;
-   top: 50%;" data-backdrop="static" role="dialog">
-        <h5 class="card-header">Generate Ticket</h5>
-        <div class="card-body">
-            @using (Html.BeginForm("Create", "Ticket", FormMethod.Post, new { @name = "FormEditTic" }))
-            {
-                @Html.AntiForgeryToken();
-                @Html.Hidden("hidRep", Model != null ? Model.IDrep:0);
-                <div class="form-group">
-                    <label class="col-form-label">Task Type</label>
-                    @Html.TextBox("txt_task_type", "", new { @class = "form-control", @required = "required" })
-                </div>
-                <div class="form-group">
-                    <label class="col-form-label">Priority</label>
-                    <select name="ddl_prio" class="form-control">
-                        <option value="1">Normal</option>
-                        <option value="2">Urgent</option>
-                        <option value="3">Ignore</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="col-form-label">Choose Technician</label>
-                    @Html.TextBox("txtemp", "", new { @id = "txt_emp", @class = "form-control", @style="display:inline-table"})
-                    @Html.Hidden("hidEmp", "", new { @id = "hid_emp" })
-                </div>
-                <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
-                <button class="btn btn-default" onclick="$('#edit_rep').show(); $('#edit_tic').removeClass('show'); $('.modal.in').modal('hide'); $('body').removeClass('modal-open'); $('.modal-backdrop').remove();" type="button">Cancel</button>
             }
         </div>
 
@@ -310,8 +205,3 @@
     </div>
 
 </div>
-
-
-
-
-

@@ -7,23 +7,73 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("#newbtn").click(function () {
+            let el = document.getElementById("add_inv");
+            let inputs = el.getElementsByTagName("input");
+
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].type=="text")
+                    inputs[i].value = "";
+            }
+
             $("#add_inv").show();
             $("#edit_inv").hide();
         });
 
+
         @if(TempData["return_value"] != null)
         {
-            if((int)TempData["return_value"] <= 0)
+            if(TempData["error"] != null)
+            {
+                @:$("#btnCreate").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
+            }
+            else if((int)TempData["return_value"] <= 0)
             {
                 @:$("#add_inv").addClass("show");
+                @:$("#btnCreate").notify("Failed to add new Inventory.", { position: "bottom", className: "error" });
+            }
+            else
+            {
+                @:$("#tblData").notify("Succesfully added new Inventory", { position: "top center", className: "success", arrowShow: false });
             }
         }
-
-        @if(TempData["edit_value"] != null)
+        else if(TempData["edit_value"] != null)
         {
-            if((int)TempData["edit_value"] > 0)
+            if(TempData["error"] != null)
+            {
+                @:$("#tblData").notify(@TempData["error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
+            }
+            else if((int)TempData["edit_value"] > 0)
             {
                 @:$("#edit_inv").show();
+            }
+        }
+        else if(TempData["edit_return_value"] != null)
+        {
+            @:$("#edit_inv").show();
+            if(TempData["error"] != null)
+            {
+                @:$("#btnSave").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
+            }
+            else if((int)TempData["edit_return_value"] > 0)
+            {
+                @:$("#btnSave").notify("Saved Changes successfully.", { position: "bottom", className:"success" });
+            }
+        }
+        else if(TempData["del_return_value"] != null)
+        {
+            if(TempData["error"] != null)
+            {
+                @:$("#edit_inv").show();
+                @:$("#btnDelete").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
+            }
+            else if((int)TempData["del_return_value"] > 0)
+            {
+                @:$("#tblData").notify("Succesfully removed Inventory", { position: "top center", className:"success", arrowShow:false});
+            }
+            else if ((int)TempData["del_return_value"] <= 0)
+            {
+                @:$("#edit_inv").show();
+                @:$("#btnDelete").notify("Failed to remove Inventory", { position: "bottom", className:"error" });
             }
         }
     }
@@ -34,6 +84,7 @@
 
 </script>
 <link href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
+<script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 <script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 @*<link href="~/Content/assets/vendor/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
 <script src="~/Content/assets/vendor/datatables/js/dataTables.bootstrap4.min.js"></script>*@
@@ -85,7 +136,7 @@
                     }
 
                 </div>
-                <button type="submit" class="btn btn-primary" name="Submit">Add Inventory</button>
+                <button id="btnCreate" type="submit" class="btn btn-primary" name="Submit">Add Inventory</button>
             }
         </div>
 
@@ -95,6 +146,7 @@
         <div class="card-body">
             @using (Html.BeginForm("Edit", "Inventory", FormMethod.Post, new { @name = "FormEditInv" }))
             {
+                @Html.AntiForgeryToken();
                 @Html.HiddenFor(model => model.IDinv, "");
                 <div class="form-group">
                     <label class="col-form-label">Inventory Name</label>
@@ -105,21 +157,9 @@
                     @Html.TextBoxFor(model => model.InvQty, "", new { @class = "form-control", @type = "number", @required = "required" })
                 </div>
                 <div class="form-group">
-                    @if (TempData["edit_return_value"] != null)
-                    {
-                        if ((int)TempData["edit_return_value"] <= 0)
-                        {
-                            <span style="color:red;">Failed to save changes.</span>
-                        }
-                        else
-                        {
-                            <span style="color:green;">Saved Changes successfully.</span>
-                        }
-                    }
-
                 </div>
-                <button type="submit" class="btn btn-primary" name="Submit">Save Changes</button>
-                <a href="/Inventory/Delete/@(Model != null ? Model.IDinv:0)" class="btn btn-danger">Delete</a>
+                <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
+                <a id="btnDelete" href="/Inventory/Delete/@(Model != null ? Model.IDinv:0)" class="btn btn-danger">Delete</a>
             }
         </div>
 
@@ -131,7 +171,7 @@
                 <table id="tblData" class="table" width="100%">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            @*<th>ID</th>*@
                             <th>Inventory Name</th>
                             <th>Quantity</th>
                         </tr>

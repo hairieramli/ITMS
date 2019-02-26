@@ -22,8 +22,6 @@ namespace ITMS.Controllers
 
         public ActionResult Index()
         {
-            if (Session["IDUser"] == null)
-                return RedirectToAction("Index", "Account");
             return View();
         }
 
@@ -68,9 +66,9 @@ namespace ITMS.Controllers
 
                 if (!String.IsNullOrEmpty(orderByClause))
                 {
-                    orderByClause = orderByClause.Replace("0", ", IDinv");
-                    orderByClause = orderByClause.Replace("1", ", invName");
-                    orderByClause = orderByClause.Replace("2", ", invQty");
+                    //orderByClause = orderByClause.Replace("0", ", IDinv");
+                    orderByClause = orderByClause.Replace("0", ", invName");
+                    orderByClause = orderByClause.Replace("1", ", invQty");
                     //Eliminate the first comma of the variable "order"status_emp
                     orderByClause = orderByClause.Remove(0, 1);
                 }
@@ -106,7 +104,7 @@ namespace ITMS.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["error"] = ex.Message;
             }
 
             return Content(sb.ToString(), "application/json");
@@ -126,9 +124,9 @@ namespace ITMS.Controllers
                     {
                         sb.Append("{");
                         sb.Append("\"DT_ID\":\"r_" + dr["IDinv"].ToString() + "\",");
-                        sb.Append("\"0\":\"" + dr["IDinv"].ToString() + "\",");
-                        sb.Append("\"1\":\"<a href='/Inventory/Details/r_" + dr["IDinv"].ToString() + "'>" + dr["invName"].ToString() + "</a>\",");
-                        sb.Append("\"2\":\"" + dr["invQty"].ToString() + "\"");
+                        //sb.Append("\"0\":\"" + dr["IDinv"].ToString() + "\",");
+                        sb.Append("\"0\":\"<a href='/Inventory/Details/r_" + dr["IDinv"].ToString() + "'>" + dr["invName"].ToString() + "</a>\",");
+                        sb.Append("\"1\":\"" + dr["invQty"].ToString() + "\"");
                         sb.Append("},");
                     }
                     outputJson = sb.ToString();
@@ -138,7 +136,7 @@ namespace ITMS.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["error"] = ex.Message;
             }
 
             outputJson = "[" + outputJson + "]";
@@ -167,7 +165,7 @@ namespace ITMS.Controllers
             }
             catch(Exception ex)
             {
-                TempData["edit_value"] = 0;
+                TempData["error"] = ex.Message;
             }
 
             return View("Index", model);
@@ -189,7 +187,7 @@ namespace ITMS.Controllers
             try
             {
 
-                    ITMSEntities1 et = new ITMSEntities1();
+                    ITMSEntities2 et = new ITMSEntities2();
                     tbl_inventory tbl = new tbl_inventory();
 
                     DbSet test = et.Set<tbl_inventory>();
@@ -200,30 +198,25 @@ namespace ITMS.Controllers
 
                 return RedirectToAction("Index");
             }
-            catch
+            catch(Exception ex)
             {
-                return View();
+                TempData["error"] = ex.Message;
+                return View("Index");
             }
         }
 
         // GET: Inventory/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View("Index");
-        }
-
-        // POST: Inventory/Edit/5
         [HttpPost]
-        public ActionResult Edit(int id, FormCollection form)
+        public ActionResult Edit(InventoryModel model)
         {
             try
             {
                 // TODO: Add update logic here
-                ITMSEntities1 et = new ITMSEntities1();
+                ITMSEntities2 et = new ITMSEntities2();
                 int val = 0;
                 tbl_inventory t = new tbl_inventory()
                 {
-                    IDinv = form.
+                    IDinv = model.IDinv,
                     invName = model.InvName.ToString().Trim(),
                     invQty = model.InvQty
                 };
@@ -233,16 +226,47 @@ namespace ITMS.Controllers
                 TempData["edit_return_value"] = et.SaveChanges();
                 return View("Index", model);
             }
-            catch
+            catch(Exception ex)
             {
+                TempData["error"] = ex.Message;
                 return View("Index", model);
             }
+        }
+
+        // POST: Inventory/Edit/5
+        
+        public ActionResult Edit(int id, FormCollection form)
+        {
+
+            return View("Index");
         }
 
         // GET: Inventory/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+
+            try
+            {
+                string sql = "delete from tbl_inventory where IDinv=@id";
+                List<SqlParameter> para = new List<SqlParameter>()
+                {
+                    new SqlParameter(){ParameterName="@id", SqlDbType=SqlDbType.Int, Value=id}
+                };
+                string res = app.Exec(sql, para);
+                if(res == "")
+                {
+                    TempData["del_return_value"] = 1;
+                }
+                else
+                    TempData["del_return_value"] = 0;
+
+                return RedirectToAction("Index", "Inventory");
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+            return View("Index");
         }
 
         // POST: Inventory/Delete/5

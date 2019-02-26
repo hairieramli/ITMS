@@ -19,15 +19,15 @@ namespace ITMS.Controllers
         [AllowAnonymous]
         public ActionResult Index()
         {
-            if (User.Identity.IsAuthenticated && Session["IDUser"] != null)
+            if (User.Identity.IsAuthenticated || Session["IDUser"] != null)
             {
-                System.Diagnostics.Debug.WriteLine("AUTHENTICATED.....");
+                //System.Diagnostics.Debug.WriteLine("AUTHENTICATED.....");
                 FormsIdentity id = (FormsIdentity)User.Identity;
                 FormsAuthenticationTicket ticket = id.Ticket;
                 System.Diagnostics.Debug.WriteLine("TICKET EMAIL: " + ticket.Name);
-                Response.Redirect("/Home/Index");
+                System.Diagnostics.Debug.WriteLine("URL: " + FormsAuthentication.GetRedirectUrl(ticket.Name, false).ToString());
+                return Redirect("/Home/Index");
             }
-
             return View();
         }
 
@@ -35,11 +35,9 @@ namespace ITMS.Controllers
         [HttpPost]
         public ActionResult Index(UserModel model)
         {
-
-
             if (model.UserName != null && model.Password != null)
             {
-                
+
                 ITMSEntities cbe = new ITMSEntities();
                 ObjectResult<int?> s = cbe.GetLoginResult(model.UserName, model.Password);
                 string item = s.FirstOrDefault().ToString();
@@ -52,12 +50,12 @@ namespace ITMS.Controllers
 
                         if (dr != null)
                         {
-                            Session["IDUser"] = dr["IDUser"].ToString();
-                            Session["UserName"] = dr["UserName"].ToString();
-                            Session["UserEmail"] = dr["UserEmail"].ToString();
-                            Session["UserType"] = dr["UserType"].ToString();
-                            Session["lastLoginDate"] = dr["lastLoginDate"].ToString();
-                            Session.Timeout = 20;
+                            HttpContext.Session["IDUser"] = dr["IDUser"].ToString();
+                            HttpContext.Session["UserName"] = dr["UserName"].ToString();
+                            HttpContext.Session["UserEmail"] = dr["UserEmail"].ToString();
+                            HttpContext.Session["UserType"] = dr["UserType"].ToString();
+                            HttpContext.Session["lastLoginDate"] = dr["lastLoginDate"].ToString();
+                            HttpContext.Session.Timeout = 20;
                             FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(
                                 1,
                                 dr["UserEmail"].ToString(),
@@ -72,7 +70,8 @@ namespace ITMS.Controllers
                             Response.Cookies.Add(new HttpCookie(FormsAuthentication.FormsCookieName, encTic));
 
                             //Response.Cookies[FormsAuthentication.FormsCookieName].Expires = DateTime.Now.AddMinutes(20);
-
+                            //System.Diagnostics.Debug.WriteLine("URL: " + FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false).ToString());
+                            //return Redirect("/Home/Index");
                             return Redirect(FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false));
                         }
                         else
@@ -80,14 +79,13 @@ namespace ITMS.Controllers
                             ViewBag.NotValidUser = "Wrong Combination of Email and Password!";
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine("ERRORORR: " + ex.Message);
                     }
 
                 }
             }
-
             return View();
         }
 
@@ -166,6 +164,7 @@ namespace ITMS.Controllers
         public virtual ActionResult logOut()
         {
             FormsAuthentication.SignOut();
+            Session.Abandon();
             HttpContext.User = null;
 
             return RedirectToAction("Index", "Home");

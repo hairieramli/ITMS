@@ -50,5 +50,40 @@ namespace ITMS.Models
 
             return ds;
         }
+
+        public string Exec(string command, List<SqlParameter> parameter)
+        {
+            DataSet ds = new DataSet();
+            string ResultStr = "ERROR";
+            try
+            {
+                
+                using (SqlConnection Sqlcon = new SqlConnection(DefaultConnectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand())
+                    {
+                        Sqlcon.Open();
+                        cmd.Connection = Sqlcon;
+                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandText = command;
+                        if (parameter != null)
+                            cmd.Parameters.AddRange(parameter.ToArray());
+                        ResultStr = cmd.ExecuteNonQuery() == 1 ? "" : "Error";
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultStr = ex.Message;
+            }
+            finally
+            {
+                SQLConn.Close();
+
+            }
+
+            return ResultStr;
+        }
     }
 }

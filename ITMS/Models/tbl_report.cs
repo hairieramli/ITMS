@@ -19,5 +19,6 @@ namespace ITMS.Models
         public Nullable<int> IDUser { get; set; }
         public string rep_desc { get; set; }
         public Nullable<System.DateTime> submittedDate { get; set; }
+        public string rep_title { get; set; }
     }
 }

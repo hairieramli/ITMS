@@ -15,10 +15,11 @@ namespace ITMS.Models
     public partial class tbl_ticket
     {
         public int IDticket { get; set; }
-        public string rep_desc { get; set; }
         public string task_type { get; set; }
         public Nullable<int> priority { get; set; }
-        public string status { get; set; }
         public Nullable<System.DateTime> TicketDate { get; set; }
+        public Nullable<int> IDrep { get; set; }
+        public Nullable<int> IDtechnician { get; set; }
+        public string ticketStatus { get; set; }
     }
 }

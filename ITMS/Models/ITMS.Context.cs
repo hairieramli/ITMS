@@ -13,10 +13,10 @@ namespace ITMS.Models
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class ITMSEntities1 : DbContext
+    public partial class ITMSEntities2 : DbContext
     {
-        public ITMSEntities1()
-            : base("name=ITMSEntities1")
+        public ITMSEntities2()
+            : base("name=ITMSEntities2")
         {
         }
     

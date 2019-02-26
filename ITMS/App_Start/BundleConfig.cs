@@ -20,7 +20,10 @@ namespace ITMS
                         "~/Scripts/modernizr-*"));
 
             bundles.Add(new ScriptBundle("~/bundles/bootstrap", "//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js").Include(
-                      "~/Scripts/bootstrap.js"));
+                      "~/Scripts/bootstrap.js",
+                      "~/Scripts/notify.js",
+                      "~/Scripts/notify.min.js"
+                      ));
 
             
 
