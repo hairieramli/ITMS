@@ -31,7 +31,7 @@
                     }
                 });
             },
-            minLength: 3,
+            minLength: 1,
             select: function (event, ui) {
 
                 $('#txt_emp').val(ui.item.value);
@@ -168,10 +168,17 @@
 <div>
     <div class="row">
         <div class="col-lg-3 col-xs-6">
-            <a id="newbtn" class="btn btn-app btn-info">
-                <i class="fa fa-edit"></i>
-                New Report
-            </a>
+            @if (HttpContext.Current.Session["User_Cat"] != null)
+            {
+                if (HttpContext.Current.Session["User_Cat"].ToString() != "2")
+                {
+                    <a id="newbtn" class="btn btn-app btn-info">
+                        <i class="fa fa-edit"></i>
+                        New Report
+                    </a>
+                }
+            }
+
         </div>
     </div>
     <div class="row">
@@ -221,14 +228,32 @@
                     <label class="col-form-label">Date</label>
                     @Html.Label("", TempData["submittedDate"] != null ? TempData["submittedDate"].ToString() : "", new { @class = "col-form-label", @style = "color:#3EC81F;font-family:arial;font-weight:bold" })
                 </div>
-                <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
-                <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Delete</a>
-                if (Model != null)
+                if (HttpContext.Current.Session["User_Cat"] != null)
                 {
-                    if (Model.ticketStatus.ToString().ToLower() == "pending")
+                    if (HttpContext.Current.Session["User_Cat"].ToString() == "1" || HttpContext.Current.Session["User_Cat"].ToString() == "3")
                     {
-                        <button class="btn btn-success" type="button" onclick="genTicket();">Generate Ticket</button>
+                        <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
+
                     }
+                    if (HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                    {
+                        <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Delete</a>
+                    }
+                }
+                if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
+                {
+                    if (HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                    {
+                        if (Model.ticketStatus.ToString().ToLower() == "pending")
+                        {
+                            <button class="btn btn-success" type="button" onclick="genTicket();">Generate Ticket</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-default" type="button" onclick="seeTicket();">Edit Ticket</button>
+                        }
+                    }
+
                 }
 
             }
@@ -244,7 +269,7 @@
             @using (Html.BeginForm("Create", "Ticket", FormMethod.Post, new { @name = "FormEditTic" }))
             {
                 @Html.AntiForgeryToken();
-                @Html.Hidden("hidRep", Model != null ? Model.IDrep:0);
+                @Html.Hidden("hidRep", Model != null ? Model.IDrep : 0);
                 <div class="form-group">
                     <label class="col-form-label">Task Type</label>
                     @Html.TextBox("txt_task_type", "", new { @class = "form-control", @required = "required" })
@@ -253,21 +278,33 @@
                     <label class="col-form-label">Priority</label>
                     <select name="ddl_prio" class="form-control">
                         <option value="1">Normal</option>
-                        <option value="2">Urgent</option>
-                        <option value="3">Ignore</option>
+                        <option value="2">High</option>
+                        <option value="3">Urgent</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Choose Technician</label>
-                    @Html.TextBox("txtemp", "", new { @id = "txt_emp", @class = "form-control", @style="display:inline-table"})
+                    @Html.TextBox("txtemp", "", new { @id = "txt_emp", @class = "form-control", @style = "display:inline-table" })
                     @Html.Hidden("hidEmp", "", new { @id = "hid_emp" })
                 </div>
-                <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
+                if (Model != null)
+                {
+                    if (Model.ticketStatus.ToString().ToLower() == "pending")
+                    {
+                        <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
+                    }
+                    else
+                    {
+                        <button id="btnCancelTic" class="btn btn-danger" type="submit">Cancel Ticket</button>
+                    }
+                }
+                
                 <button class="btn btn-default" onclick="$('#edit_rep').show(); $('#edit_tic').removeClass('show'); $('.modal.in').modal('hide'); $('body').removeClass('modal-open'); $('.modal-backdrop').remove();" type="button">Cancel</button>
             }
         </div>
 
     </div>
+
     <div class="card">
         <h5 class="card-header">List of Reports</h5>
         <div class="card-body">

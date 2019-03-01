@@ -81,13 +81,25 @@ namespace ITMS.Controllers
                     orderByClause = "IDrep asc";
                 orderByClause = "ORDER BY " + orderByClause;
 
+                string filterUser = "";
+                if(HttpContext.Session["User_Cat"] != null && HttpContext.Session["IDUser"] != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("USER CAT: " + HttpContext.Session["User_Cat"].ToString());
+                    if (HttpContext.Session["User_Cat"].ToString() == "3")
+                        filterUser = " AND IDUser=" + HttpContext.Session["IDUser"].ToString();
+                    else if(HttpContext.Session["User_Cat"].ToString() == "2")
+                        filterUser = " AND IDtechnician=" + HttpContext.Session["IDUser"].ToString();
+                }
+
+
+
                 DataTable dt = new DataTable();
 
                 string sql = string.Format("select * from" +
 "(select ROW_NUMBER() OVER({0}) as rownumber, * from" +
 "(select(select COUNT(*) from tbl_report a left join tbl_ticket b on a.IDrep = b.IDrep) as TotalRows, " +
-"(select COUNT(*) from tbl_report c left join tbl_ticket d on c.IDrep = d.IDrep WHERE 1 = 1{1}) as TotalDisplayRows, " +
-"e.IDrep, rep_title, submittedDate, UserName, (CASE WHEN ticketStatus IS NULL THEN 'pending' ELSE ticketStatus END)status from tbl_report e left join tbl_ticket f on e.IDrep = f.IDrep WHERE 1 = 1{1})det)tbl WHERE rownumber between {2} AND {3}", orderByClause, whereClause, start + 1, length + 1);
+"(select COUNT(*) from tbl_report c left join tbl_ticket d on c.IDrep = d.IDrep WHERE 1 = 1{1}{4}) as TotalDisplayRows, " +
+"e.IDrep, rep_title, submittedDate, UserName, (CASE WHEN ticketStatus IS NULL THEN 'pending' ELSE ticketStatus END)status from tbl_report e left join tbl_ticket f on e.IDrep = f.IDrep WHERE 1 = 1{1}{4})det)tbl WHERE rownumber between {2} AND {3}", orderByClause, whereClause, start + 1, length + 1, filterUser);
 
                 dt = app.GetDataSet(sql, null).Tables[0];
                 int totalRows = 0;
@@ -328,7 +340,7 @@ namespace ITMS.Controllers
 
             StringBuilder sb = new StringBuilder();
 
-            string sql = "select top 10 IDUser, UserName from tbl_admin a where  UserName like '%" + term.Trim() + "%' and User_Cat=1";
+            string sql = "select top 10 IDUser, UserName from tbl_admin a where  UserName like '%" + term.Trim() + "%' and User_Cat=2";
             DataSet ds = app.GetDataSet(sql, null);
 
             foreach (DataRow dr in ds.Tables[0].Rows)

@@ -14,7 +14,7 @@ namespace ITMS.Controllers
 {
     public class AccountController : Controller
     {
-
+        QueryCode app = new QueryCode();
         // GET: Account
         [AllowAnonymous]
         public ActionResult Index()
@@ -38,53 +38,64 @@ namespace ITMS.Controllers
             if (model.UserName != null && model.Password != null)
             {
 
-                ITMSEntities cbe = new ITMSEntities();
-                ObjectResult<int?> s = cbe.GetLoginResult(model.UserName, model.Password);
-                string item = s.FirstOrDefault().ToString();
+                string sql = "select * from tbl_admin where UserEmail=@email AND UserPassword=@pwd";
 
-                if (item != "")
+                List<SqlParameter> para = new List<SqlParameter>()
                 {
-                    try
+                    new SqlParameter(){ParameterName="@email", SqlDbType=SqlDbType.VarChar, Value=model.UserName },
+                    new SqlParameter(){ParameterName="@pwd", SqlDbType=SqlDbType.VarChar, Value=model.Password }
+                };
+
+                DataSet ds = app.GetDataSet(sql, para);
+
+                if(ds.Tables.Count > 0)
+                {
+                    if(ds.Tables[0].Rows.Count > 0)
                     {
-                        DataRow dr = model.getUser(item);
+                        DataRow dr = ds.Tables[0].Rows[0];
 
-                        if (dr != null)
-                        {
-                            HttpContext.Session["IDUser"] = dr["IDUser"].ToString();
-                            HttpContext.Session["UserName"] = dr["UserName"].ToString();
-                            HttpContext.Session["UserEmail"] = dr["UserEmail"].ToString();
-                            HttpContext.Session["UserType"] = dr["UserType"].ToString();
-                            HttpContext.Session["lastLoginDate"] = dr["lastLoginDate"].ToString();
-                            HttpContext.Session.Timeout = 20;
-                            FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(
-                                1,
-                                dr["UserEmail"].ToString(),
-                                DateTime.Now,
-                                DateTime.Now.AddMinutes(20),
-                                false,
-                                dr["IDUser"].ToString(),
-                                FormsAuthentication.FormsCookiePath);
+                        HttpContext.Session["IDUser"] = dr["IDUser"].ToString();
+                        HttpContext.Session["UserName"] = dr["UserName"].ToString();
+                        HttpContext.Session["UserEmail"] = dr["UserEmail"].ToString();
+                        HttpContext.Session["User_Cat"] = dr["User_Cat"].ToString();
+                        HttpContext.Session["lastLoginDate"] = dr["lastLoginDate"].ToString();
+                        HttpContext.Session.Timeout = 20;
+                        FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(
+                            1,
+                            dr["UserEmail"].ToString(),
+                            DateTime.Now,
+                            DateTime.Now.AddMinutes(20),
+                            false,
+                            dr["IDUser"].ToString(),
+                            FormsAuthentication.FormsCookiePath);
 
-                            string encTic = FormsAuthentication.Encrypt(ticket);
+                        string encTic = FormsAuthentication.Encrypt(ticket);
 
-                            Response.Cookies.Add(new HttpCookie(FormsAuthentication.FormsCookieName, encTic));
+                        Response.Cookies.Add(new HttpCookie(FormsAuthentication.FormsCookieName, encTic));
 
-                            //Response.Cookies[FormsAuthentication.FormsCookieName].Expires = DateTime.Now.AddMinutes(20);
-                            //System.Diagnostics.Debug.WriteLine("URL: " + FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false).ToString());
-                            //return Redirect("/Home/Index");
-                            return Redirect(FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false));
-                        }
-                        else
-                        {
-                            ViewBag.NotValidUser = "Wrong Combination of Email and Password!";
-                        }
+                        //Response.Cookies[FormsAuthentication.FormsCookieName].Expires = DateTime.Now.AddMinutes(20);
+                        //System.Diagnostics.Debug.WriteLine("URL: " + FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false).ToString());
+                        //return Redirect("/Home/Index");
+
+                        sql = "UPDATE tbl_admin SET lastLoginDate='"+ DateTime.Now +"' WHERE IDUser=" + dr["IDUser"].ToString();
+                        string res = app.Exec(sql, null);
+
+                        return Redirect(FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false));
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        System.Diagnostics.Debug.WriteLine("ERRORORR: " + ex.Message);
+                        ViewBag.NotValidUser = "Wrong Combination of Email and Password!";
                     }
-
                 }
+                else
+                {
+                    ViewBag.NotValidUser = "Wrong Combination of Email and Password!";
+                }
+
+                //ITMSEntities cbe = new ITMSEntities();
+                //ObjectResult<int?> s = cbe.GetLoginResult(model.UserName, model.Password);
+                //string item = s.FirstOrDefault().ToString();
+
             }
             return View();
         }
