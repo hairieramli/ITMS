@@ -46,6 +46,9 @@ namespace ITMS.Controllers
                     DbSet test = et.Set<tbl_ticket>();
                     test.Add(new tbl_ticket { task_type = form["txt_task_type"].ToString().Trim(), priority = Int32.Parse(form["ddl_prio"].ToString()), TicketDate = DateTime.Now, IDrep=Int32.Parse(form["hidRep"].ToString()), IDtechnician=Int32.Parse(form["hidEmp"].ToString()), ticketStatus="In Process" });
                     int return_value = et.SaveChanges();
+                    if (return_value > 0)
+                        app.NotifyUser(form["hidEmp"].ToString(), "Report", "has assigned you a ticket.");
+
                     System.Diagnostics.Debug.WriteLine("RETURN VALUE : " + return_value);
                     System.Diagnostics.Debug.WriteLine("TASK TYPE : " + form["txt_task_type"].ToString().Trim());
                     TempData["tic_return_value"] = return_value;
@@ -60,6 +63,8 @@ namespace ITMS.Controllers
                 return RedirectToAction("Index", "Report");
             }
         }
+
+        
 
         // GET: Ticket/Edit/5
         public ActionResult Edit(int id)

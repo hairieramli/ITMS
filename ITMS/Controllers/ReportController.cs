@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Data.Entity;
+using System.Configuration;
 
 namespace ITMS.Controllers
 {
@@ -16,6 +17,7 @@ namespace ITMS.Controllers
     {
 
         QueryCode app = new QueryCode();
+        string DefaultConnectionString = ConfigurationManager.ConnectionStrings["DefaultConnectionString"].ConnectionString.ToString();
 
         // GET: Report
         public ActionResult Index()
@@ -23,6 +25,99 @@ namespace ITMS.Controllers
             return View();
         }
 
+        [HttpPost]
+        public string Noti()
+        {
+            int id = 0;
+            string result = "";
+            try
+            {
+                
+                string sql = "select a.*, (select TOP 1 UserName from tbl_admin where IDUser=a.from_user) as ffrom, (select TOP 1 UserName from tbl_admin where IDUser=a.to_user) as tto from tbl_notification a, tbl_admin b where a.status='Unread' and a.to_user=@curr and a.to_user=b.IDUser";
+                List<SqlParameter> para = new List<SqlParameter>()
+                {
+                    new SqlParameter(){ParameterName="@curr", SqlDbType=SqlDbType.Int, Value=HttpContext.Session["IDUser"].ToString() }
+                };
+                System.Diagnostics.Debug.WriteLine("SESSION: " + HttpContext.Session["IDUser"].ToString());
+                DataSet ds = app.GetDataSet(sql, para);
+
+                if(ds.Tables.Count > 0)
+                    if(ds.Tables[0].Rows.Count > 0)
+                    {
+                        result =  ds.Tables[0].Rows[0]["ffrom"].ToString() +" " + ds.Tables[0].Rows[0]["noti_desc"].ToString();
+                        System.Diagnostics.Debug.WriteLine("RESULT: " + result);
+                        id = Int32.Parse(ds.Tables[0].Rows[0]["IDnoti"].ToString());
+                    }
+
+                if (result != "" && id != 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("IN: " + result);
+                    using (SqlConnection Sqlcon = new SqlConnection(DefaultConnectionString))
+                    {
+                        string command = "UPDATE tbl_notification SET status='Read' where IDnoti=" + id;
+
+                        using (SqlCommand cmd = new SqlCommand())
+                        {
+                            Sqlcon.Open();
+                            cmd.Connection = Sqlcon;
+                            cmd.CommandType = CommandType.Text;
+                            cmd.CommandText = command;
+                            cmd.ExecuteNonQuery();
+                            Sqlcon.Close();
+                        }
+                    }
+                }
+                    
+            }
+            catch(Exception ex)
+            {
+
+            }
+            return result;
+        }
+
+        public ContentResult GetAllNoti()
+        {
+            string outputJson = "";
+            StringBuilder sb = new StringBuilder();
+            int id = 0;
+            try
+            {
+
+                sb.Clear();
+                string sql = "select a.*, CASE WHEN a.noti_desc IS NOT NULL THEN (select TOP 1 UserName from tbl_admin where IDUser=a.from_user) + ' ' + a.noti_desc ELSE '' END as msg ,  (select TOP 1 UserName from tbl_admin where IDUser=a.from_user)from_user_name,(select TOP 1 UserName from tbl_admin where IDUser=a.to_user) as tto from tbl_notification a, tbl_admin b where a.to_user=@curr and a.to_user=b.IDUser order by a.createdDate DESC";
+                List<SqlParameter> para = new List<SqlParameter>()
+                {
+                    new SqlParameter(){ParameterName="@curr", SqlDbType=SqlDbType.Int, Value=HttpContext.Session["IDUser"].ToString() }
+                };
+                DataSet ds = app.GetDataSet(sql, para);
+
+                if (ds.Tables.Count > 0)
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach(DataRow dr in ds.Tables[0].Rows)
+                        {
+                            sb.Append("{");
+                            sb.Append("\"IDnoti\":\"r_" + dr["IDnoti"].ToString() + "\",");
+                            sb.Append("\"Desc\":\""+ dr["noti_desc"].ToString() + "\",");
+                            sb.Append("\"From_User\":\"" + dr["from_user_name"].ToString() + "\",");
+                            sb.Append("\"createdDate\":\"" + (dr["createdDate"] != null ? String.Format("{0:dd MMM yyy hh:mm:tt}", dr["createdDate"]) : "") + "\"");
+                            sb.Append("},");
+                        }
+
+                    }
+                outputJson = sb.ToString();
+                outputJson = outputJson.Remove(outputJson.Length - 1, 1);
+                sb.Clear();
+                sb.Append("{\"data\": ["+ outputJson +"]}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("ERROR NOTI: " + ex.Message);
+            }
+            return Content(sb.ToString(), "application/json");
+        }
+        
         public ContentResult List()
         {
             int draw = Int32.Parse(Request.QueryString["draw"] != null ? Request.QueryString["draw"].ToString() : "0");
