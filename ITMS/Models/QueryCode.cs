@@ -5,6 +5,7 @@ using System.Web;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Web.Mvc;
 
 namespace ITMS.Models
 {
@@ -78,6 +79,52 @@ namespace ITMS.Models
 
                 }
             }
+        }
+
+        public DataTable loadList(string item)
+        {
+            DataTable dt = null;
+            if(item == "priority")
+            {
+                DataSet ds = new DataSet();
+                string sql = "select prio_code item_code, prio_desc item_desc from cfg_work_prio where status='Active'";
+                ds = GetDataSet(sql, null);
+                if(ds.Tables.Count > 0)
+                {
+                    dt = ds.Tables[0];
+                }
+            }
+            else if(item == "technician")
+            {
+                DataSet ds = new DataSet();
+                string sql = "select '0' item_code, 'Please Choose' item_desc union all select IDUser item_code, UserName item_desc from tbl_admin where User_Cat=2";
+                ds = GetDataSet(sql, null);
+                if (ds.Tables.Count > 0)
+                {
+                    dt = ds.Tables[0];
+                }
+            }
+            else if(item == "work_status")
+            {
+                DataSet ds = new DataSet();
+                string sql = "select work_status_desc item_code, work_status_desc item_desc from cfg_work_status where status='Active'";
+                ds = GetDataSet(sql, null);
+                if (ds.Tables.Count > 0)
+                {
+                    dt = ds.Tables[0];
+                }
+            }
+            else if (item == "user_cat")
+            {
+                DataSet ds = new DataSet();
+                string sql = "select id item_code, Category_User item_desc from cfg_user_cat";
+                ds = GetDataSet(sql, null);
+                if (ds.Tables.Count > 0)
+                {
+                    dt = ds.Tables[0];
+                }
+            }
+            return dt;
         }
 
         public string Exec(string command, List<SqlParameter> parameter)

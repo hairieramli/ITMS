@@ -7,7 +7,38 @@
 }
 <script type="text/javascript">
 
-    $(function () {
+
+
+    function showTech() {
+        function split(val) {
+            return val.split(/,\s*/);
+        }
+        function extractLast(term) {
+            return split(term).pop();
+        }
+        $("#txt_emp").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/Report/showTech",
+                    dataType: "jsonp",
+                    data: {
+                        term: request.term
+                    },
+                    success: function (data) {
+                        response(data);
+                    }
+                });
+            },
+            minLength: 0,
+            select: function (event, ui) {
+
+                $('#txt_emp').val(ui.item.value);
+                $('#hid_emp').val(ui.item.id);
+            }
+        });
+    }
+
+    function loadEmp() {
         //function log(message) {
         //    $("<div>").text(message).prependTo("#log");
         //    $("#log").scrollTop(0);
@@ -38,19 +69,12 @@
                 $('#hid_emp').val(ui.item.id);
             }
         });
-
-
-    });
+    }
 
     //$(document).ready(function () {
     //    var data = ["Boston Celtics", "Chicago Bulls", "Miami Heat", "Orlando Magic", "Atlanta Hawks", "Philadelphia Sixers", "New York Knicks", "Indiana Pacers", "Charlotte Bobcats", "Milwaukee Bucks", "Detroit Pistons", "New Jersey Nets", "Toronto Raptors", "Washington Wizards", "Cleveland Cavaliers"];
-        
-    //});
 
-    function genTicket() {
-        $("#edit_rep").hide();
-        $("#edit_tic").modal('show');
-    }
+    //});
 
     $(document).ready(function () {
         $("#newbtn").click(function () {
@@ -81,6 +105,17 @@
             else
             {
                 @:$("#tblData").notify("Succesfully added new Report", { position: "top center", className: "success", arrowShow: false });
+            }
+        }
+        else if(TempData["not_return_value"] != null)
+        {
+            if(TempData["error"] != null)
+            {
+                @:$("#tblData").notify(@TempData["error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
+            }
+            else if((int)TempData["not_return_value"] > 0)
+            {
+                @:$("#tblData").notify("User has been notified", { position: "top center", className:"success", arrowShow:false});
             }
         }
         else if(TempData["edit_value"] != null)
@@ -140,6 +175,23 @@
                 @:$("#btnGenTic").notify("Failed to remove Report", { position: "bottom", className:"error" });
             }
         }
+        else if(TempData["edit_tic_value"] != null)
+        {
+            if(TempData["error"] != null)
+            {
+                @:$("#edit_tic").show();
+                @:$("#btnGenTic").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
+            }
+            else if((int)TempData["edit_tic_value"] > 0)
+            {
+                @:$("#tblData").notify("Work status has been updated successfully.", { position: "top center", className:"success", arrowShow:false});
+            }
+            else if ((int)TempData["edit_tic_value"] <= 0)
+            {
+                @:$("#edit_tic").show();
+                @:$("#btnGenTic").notify("Failed to update, please try again.", { position: "bottom", className:"error" });
+            }
+        }
     }
 
 
@@ -170,7 +222,7 @@
         <div class="col-lg-3 col-xs-6">
             @if (HttpContext.Current.Session["User_Cat"] != null)
             {
-                if (HttpContext.Current.Session["User_Cat"].ToString() != "2")
+                if (HttpContext.Current.Session["User_Cat"].ToString() == "3")
                 {
                     <a id="newbtn" class="btn btn-app btn-info">
                         <i class="fa fa-edit"></i>
@@ -191,7 +243,7 @@
             {
                 <div class="form-group">
                     <label class="col-form-label">Title</label>
-                    @Html.TextBox("rep_title", "", new { @id="txtTit", @class = "form-control", @required = "required" })
+                    @Html.TextBox("rep_title", "", new { @id = "txtTit", @class = "form-control", @required = "required" })
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Description</label>
@@ -212,6 +264,8 @@
             {
                 @Html.AntiForgeryToken();
                 @Html.HiddenFor(model => model.IDrep, "");
+                @Html.HiddenFor(model => model.IDUser, "");
+
                 <div class="form-group">
                     <label class="col-form-label">Title</label>
                     @Html.TextBoxFor(model => model.rep_title, "", new { @class = "form-control", @required = "required" })
@@ -221,87 +275,172 @@
                     @Html.TextAreaFor(model => model.rep_desc, 5, 10, new { @class = "form-control", @required = "required", @row = "5", @width = "100%" })
                 </div>
                 <div class="form-group">
-                    <label class="col-form-label">Submitted By</label>
-                    @Html.Label("", Model != null ? Model.UserName : "", new { @class = "col-form-label", @style = "color:#3EC81F;font-family:arial;font-weight:bold" })
+                    <table style="width:40%" cellpadding="2" border="0">
+                        <tr>
+                            <th>Submitted By</th>
+                            <th>:</th>
+                            <td>@Html.LabelFor(Model => Model.UserName, Model!= null ? Model.UserName.ToUpperInvariant(): "", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <th>:</th>
+                            <td>@Html.LabelFor(Model => Model.ticketStatus, Model != null ? Model.ticketStatus.ToUpperInvariant():"", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                        </tr>
+                        <tr>
+                            <th>Submitted Date</th>
+                            <th>:</th>
+                            <td>@Html.LabelFor(Model => Model.submittedDate, Model!=null ? String.Format("{0:dd MMM yyy hh:mm}", Model.submittedDate):"", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                        </tr>
+                        @if (Model != null)
+                        {
+                            if (Model.IDtechnician != 0)
+                            {
+                                <tr>
+                                    <th>Assigned Technician</th>
+                                    <th>:</th>
+                                    <td>@Html.LabelFor(Model => Model.technician, Model.technician.ToUpperInvariant(), new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                                </tr>
+                            }
+                        }
+                    </table>
                 </div>
-                <div class="form-group">
-                    <label class="col-form-label">Date</label>
-                    @Html.Label("", TempData["submittedDate"] != null ? TempData["submittedDate"].ToString() : "", new { @class = "col-form-label", @style = "color:#3EC81F;font-family:arial;font-weight:bold" })
-                </div>
-                if (HttpContext.Current.Session["User_Cat"] != null)
+
+                if (HttpContext.Current.Session["User_Cat"] != null && Model != null)
                 {
-                    if (HttpContext.Current.Session["User_Cat"].ToString() == "1" || HttpContext.Current.Session["User_Cat"].ToString() == "3")
+                    if (HttpContext.Current.Session["User_Cat"].ToString() == "3")
                     {
                         <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
 
                     }
-                    if (HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                    if ((HttpContext.Current.Session["User_Cat"].ToString() == "1" || HttpContext.Current.Session["User_Cat"].ToString() == "3") && Model.ticketStatus.ToString().ToLower() == "pending")
                     {
-                        <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Delete</a>
+                        <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Remove Report</a>
                     }
                 }
                 if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
                 {
                     if (HttpContext.Current.Session["User_Cat"].ToString() == "1")
                     {
+                        if (Model.ticketStatus.ToString().ToLower() == "work done")
+                        {
+                            <a id="btnNotify" href="/Report/NotifyUser/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Notify User</a>
+                        }
                         if (Model.ticketStatus.ToString().ToLower() == "pending")
                         {
-                            <button class="btn btn-success" type="button" onclick="genTicket();">Generate Ticket</button>
+                            <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">Generate Ticket</button>
                         }
                         else
                         {
-                            <button class="btn btn-default" type="button" onclick="seeTicket();">Edit Ticket</button>
+                            <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
                         }
                     }
+                    else
+                    {
 
+                        <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
+                    }
                 }
 
             }
         </div>
 
     </div>
+    @*overflow:hidden;margin-left:-30vw;margin-top:-30vh;width:50%;height:50%;position: absolute;
+    left: 50%;
+    top: 50%;*@
+    <div id="edit_tic" data-keyboard="false" aria-hidden="true" class="modal fade hide" style="" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate Ticket</h5>
+                </div>
+                <div class="modal-body">
+                    @using (Html.BeginForm("Create", "Ticket", FormMethod.Post, new { @name = "FormEditTic" }))
+                    {
+                        @Html.AntiForgeryToken();
+                        @Html.Hidden("hidRep", Model != null ? Model.IDrep : 0);
+                        @Html.Hidden("hidTic", Model != null ? Model.IDTicket : 0);
+                        @Html.Hidden("TicDate", Model != null ? Model.TicketDate.ToString() : "0");
+                        <div class="form-group">
+                            <label class="col-form-label">Task Type</label>
+                            @if (Model != null)
+                            {
+                                if (Model.IDTicket != 0)
+                                {
+                                    @Html.TextBox("txt_task_type", Model != null ? Model.task_type : "", new { @class = "form-control", @required = "required", @readonly="readonly"})
+                                }
+                                else
+                                {
+                                    @Html.TextBox("txt_task_type", Model != null ? Model.task_type : "", new { @class = "form-control", @readonly = "readonly" })
+                                }
+                            }
 
-    <div id="edit_tic" aria-hidden="true" data-keyboard="false" class="card modal fade hide" style="overflow:hidden;margin-left:-30vw;margin-top:-30vh;width:50%;height:50%;position: absolute;
-   left: 50%;
-   top: 50%;" data-backdrop="static" role="dialog">
-        <h5 class="card-header">Generate Ticket</h5>
-        <div class="card-body">
-            @using (Html.BeginForm("Create", "Ticket", FormMethod.Post, new { @name = "FormEditTic" }))
-            {
-                @Html.AntiForgeryToken();
-                @Html.Hidden("hidRep", Model != null ? Model.IDrep : 0);
-                <div class="form-group">
-                    <label class="col-form-label">Task Type</label>
-                    @Html.TextBox("txt_task_type", "", new { @class = "form-control", @required = "required" })
-                </div>
-                <div class="form-group">
-                    <label class="col-form-label">Priority</label>
-                    <select name="ddl_prio" class="form-control">
-                        <option value="1">Normal</option>
-                        <option value="2">High</option>
-                        <option value="3">Urgent</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="col-form-label">Choose Technician</label>
-                    @Html.TextBox("txtemp", "", new { @id = "txt_emp", @class = "form-control", @style = "display:inline-table" })
-                    @Html.Hidden("hidEmp", "", new { @id = "hid_emp" })
-                </div>
-                if (Model != null)
-                {
-                    if (Model.ticketStatus.ToString().ToLower() == "pending")
-                    {
-                        <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">Priority</label>
+                            @if (Model != null)
+                            {
+                                if (Model.IDTicket != 0)
+                                {
+                                    @Html.DropDownList("ddl_prio", ViewData["priorityList"] as IEnumerable<SelectListItem>, new { @class = "form-control", @Enabled="false" })
+                                }
+                                else
+                                {
+                                    @Html.DropDownList("ddl_prio", ViewData["priorityList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                }
+                            }
+
+
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">Choose Technician</label>
+                            @if (Model != null)
+                            {
+                                if (Model.IDtechnician != 0)
+                                {
+                                    @Html.DropDownList("ddl_tech", ViewData["techList"] as IEnumerable<SelectListItem>, new { @class = "form-control select2", @Enabled="false" })
+                                }
+                                else
+                                {
+                                    @Html.DropDownList("ddl_tech", ViewData["techList"] as IEnumerable<SelectListItem>, new { @class = "form-control select2" })
+                                }
+                            }
+
+                            @*<select id="ddl_tech" name="ddl_tech" class="form-control select2"></select>*@
+
+                        </div>
+                        <div class="form-group">
+                            @if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
+                            {
+                                if (Model.ticketStatus.ToLower() != "pending" && Model.ticketStatus.ToLower() != "work done" && HttpContext.Current.Session["User_Cat"].ToString() == "2")
+                                {
+
+                                    <label class="col-form-label">Update Status</label>
+                                    @Html.DropDownList("ddl_status", ViewData["work_status"] as IEnumerable<SelectListItem>, new { @class="form-control"});
+                                }
+                            }
+                        </div>
+                        if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
+                        {
+                            if (Model.ticketStatus.ToString().ToLower() == "pending" && HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                            {
+                                <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
+                                @*<button id="btnCancelTic" class="btn btn-danger" type="submit">Cancel Ticket</button>*@
+                            }
+                            else if (Model.ticketStatus.ToLower() == "in process" && HttpContext.Current.Session["IDUser"].ToString() == Model.IDtechnician.ToString())
+                            {
+                                <button id="btnGenTic" class="btn btn-primary" type="submit">Update Status</button>
+                            }
+                        }
+
+                        <button class="btn btn-default" data-dismiss="modal" type="button">Cancel</button>
                     }
-                    else
-                    {
-                        <button id="btnCancelTic" class="btn btn-danger" type="submit">Cancel Ticket</button>
-                    }
-                }
-                
-                <button class="btn btn-default" onclick="$('#edit_rep').show(); $('#edit_tic').removeClass('show'); $('.modal.in').modal('hide'); $('body').removeClass('modal-open'); $('.modal-backdrop').remove();" type="button">Cancel</button>
-            }
+                </div>
+            </div>
         </div>
+        
+
+
 
     </div>
 
@@ -338,6 +477,31 @@
                         });
 
                     });
+
+                    $(function () {
+                        $(".select2").select2({
+                            dropdownParent: $("#edit_tic")
+                        });
+                        //loadTech();
+
+                    });
+
+                    function loadTech() {
+                        console.log('test');
+                        var feedback = $.ajax({
+                            type: "POST",
+                            url: "/Report/showTech",
+                            dataType: "jsonp",
+                            success: function (data) {
+                                if (data != "") {
+                                    $(data).each(function () {
+                                        $("#ddl_tech").append($("<option></option>").val(this.id).html(this.value));
+                                    });
+                                }
+                            }
+                        });
+                    }
+
                 </script>
             </div>
         </div>

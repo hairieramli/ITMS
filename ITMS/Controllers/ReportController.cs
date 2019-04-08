@@ -22,6 +22,46 @@ namespace ITMS.Controllers
         // GET: Report
         public ActionResult Index()
         {
+
+            List<SelectListItem> list = new List<SelectListItem>();
+            DataTable dt = app.loadList("priority");
+            foreach (DataRow row in dt.Rows)
+            {
+                list.Add(new SelectListItem()
+                {
+                    Text = row["item_desc"].ToString(),
+                    Value = row["item_code"].ToString()
+                });
+            }
+
+            ViewData["priorityList"] = new SelectList(list, "Value", "Text", "1");
+
+            list = new List<SelectListItem>();
+            dt.Clear();
+            dt = app.loadList("technician");
+            foreach (DataRow row in dt.Rows)
+            {
+                list.Add(new SelectListItem()
+                {
+                    Text = row["item_desc"].ToString(),
+                    Value = row["item_code"].ToString()
+                });
+            }
+            ViewData["techList"] = new SelectList(list, "Value", "Text", "0");
+
+            list = new List<SelectListItem>();
+            dt.Clear();
+            dt = app.loadList("work_status");
+            foreach (DataRow row in dt.Rows)
+            {
+                list.Add(new SelectListItem()
+                {
+                    Text = row["item_desc"].ToString(),
+                    Value = row["item_code"].ToString()
+                });
+            }
+            ViewData["work_status"] = new SelectList(list, "Value", "Text", "0");
+
             return View();
         }
 
@@ -38,14 +78,12 @@ namespace ITMS.Controllers
                 {
                     new SqlParameter(){ParameterName="@curr", SqlDbType=SqlDbType.Int, Value=HttpContext.Session["IDUser"].ToString() }
                 };
-                System.Diagnostics.Debug.WriteLine("SESSION: " + HttpContext.Session["IDUser"].ToString());
                 DataSet ds = app.GetDataSet(sql, para);
 
                 if(ds.Tables.Count > 0)
                     if(ds.Tables[0].Rows.Count > 0)
                     {
                         result =  ds.Tables[0].Rows[0]["ffrom"].ToString() +" " + ds.Tables[0].Rows[0]["noti_desc"].ToString();
-                        System.Diagnostics.Debug.WriteLine("RESULT: " + result);
                         id = Int32.Parse(ds.Tables[0].Rows[0]["IDnoti"].ToString());
                     }
 
@@ -179,7 +217,6 @@ namespace ITMS.Controllers
                 string filterUser = "";
                 if(HttpContext.Session["User_Cat"] != null && HttpContext.Session["IDUser"] != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("USER CAT: " + HttpContext.Session["User_Cat"].ToString());
                     if (HttpContext.Session["User_Cat"].ToString() == "3")
                         filterUser = " AND IDUser=" + HttpContext.Session["IDUser"].ToString();
                     else if(HttpContext.Session["User_Cat"].ToString() == "2")
@@ -234,9 +271,9 @@ namespace ITMS.Controllers
                     foreach (DataRow dr in dt.Rows)
                     {
                         string color = "";
-                        if (dr["status"].ToString().ToLower() == "receive")
+                        if (dr["status"].ToString().ToLower() == "work done")
                             color = " color='#3EC81F'";
-                        else if(dr["status"].ToString().ToLower() == "in progress")
+                        else if(dr["status"].ToString().ToLower() == "in process")
                             color = " color='#E9F015'";                        
 
                         sb.Append("{");
@@ -270,7 +307,13 @@ namespace ITMS.Controllers
             ReportModel model = new ReportModel();
             try
             {
-                string sql = "select a.*, (CASE WHEN b.ticketStatus IS NULL THEN 'pending' ELSE b.ticketStatus END)status from tbl_report a left join tbl_ticket b ON a.IDrep=b.IDrep where a.IDrep=" + id;
+                string sql = "select a.*, (case when b.TicketDate is not null then b.TicketDate else '' end)TicketDate, (case when b.IDticket is not null then b.IDticket else '0' end)IDticket," +
+                    "(case when b.task_type is not null then b.task_type else '' end)task_type," +
+                    "(CASE WHEN b.ticketStatus IS NULL THEN 'pending' ELSE b.ticketStatus END)status, " +
+                    "(case when b.priority is null then '1' else b.priority end)priority, " +
+                    "(case when b.IDtechnician is not null then b.IDtechnician else '0' end)IDtechnician," +
+                    "(case when b.IDtechnician is not null then (select UserName from tbl_admin where IDUser=b.IDtechnician) else '' end)technician from tbl_report a " +
+                    "left join tbl_ticket b ON a.IDrep=b.IDrep where a.IDrep=" + id;
                 DataTable dt = app.GetDataSet(sql, null).Tables[0];
 
                 if (dt.Rows.Count > 0)
@@ -281,21 +324,61 @@ namespace ITMS.Controllers
                     model.rep_desc = dt.Rows[0]["rep_desc"].ToString();
                     model.UserName = dt.Rows[0]["UserName"].ToString();
                     model.ticketStatus = dt.Rows[0]["status"].ToString();
-                    TempData["submittedDate"] = dt.Rows[0]["submittedDate"] != null ? String.Format("{0:dd MMM yyy}", dt.Rows[0]["submittedDate"]):"";
-                    var enumData = from prio e in Enum.GetValues(typeof(prio))
-                                   select new
-                                   {
-                                       ID = (int)e,
-                                       Name = e.ToString()
-                                   };
+                    model.priority = Int32.Parse(dt.Rows[0]["priority"].ToString());
+                    model.IDtechnician = Int32.Parse(dt.Rows[0]["IDtechnician"].ToString());
+                    model.technician = dt.Rows[0]["technician"].ToString();
+                    model.task_type = dt.Rows[0]["task_type"].ToString();
+                    model.IDTicket = Int32.Parse(dt.Rows[0]["IDticket"].ToString());
+                    model.submittedDate = DateTime.Parse(dt.Rows[0]["submittedDate"].ToString());
+                    model.TicketDate = DateTime.Parse(dt.Rows[0]["TicketDate"].ToString());
+                    //TempData["submittedDate"] = 
+                    List<SelectListItem> list = new List<SelectListItem>();
+                    DataTable sl = app.loadList("priority");
+                    foreach (DataRow row in sl.Rows)
+                    {
+                        list.Add(new SelectListItem()
+                        {
+                            Text = row["item_desc"].ToString(),
+                            Value = row["item_code"].ToString()
+                        });
+                    }
 
-                    ViewBag.EnumList = new SelectList(enumData, "ID", "Name");
+                    ViewData["priorityList"] = new SelectList(list, "Value", "Text", model.priority.ToString());
+
+                    list = new List<SelectListItem>();
+                    sl.Clear();
+                    sl = app.loadList("technician");
+                    foreach (DataRow row in sl.Rows)
+                    {
+                        list.Add(new SelectListItem()
+                        {
+                            Text = row["item_desc"].ToString(),
+                            Value = row["item_code"].ToString()
+                        });
+                    }
+                    ViewData["techList"] = new SelectList(list, "Value", "Text", model.IDtechnician.ToString());
+
+                    list = new List<SelectListItem>();
+                    sl.Clear();
+                    sl = app.loadList("work_status");
+                    foreach (DataRow row in sl.Rows)
+                    {
+                        list.Add(new SelectListItem()
+                        {
+                            Text = row["item_desc"].ToString(),
+                            Value = row["item_code"].ToString()
+                        });
+                    }
+                    ViewData["work_status"] = new SelectList(list, "Value", "Text", model.ticketStatus.ToString());
+
                     TempData["edit_value"] = 1;
                     TempData["edit_id"] = model.IDrep;
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine("ERROR PRIO: " + ex.Message);
+                TempData["edit_value"] = 0;
                 TempData["error"] = ex.Message;
             }
             return View("Index", model);
@@ -307,7 +390,6 @@ namespace ITMS.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("IDUSER : " + HttpContext.Session["UserName"].ToString());
                 if(HttpContext.Session["IDUser"] != null && HttpContext.Session["UserName"] != null)
                 {
                     System.Diagnostics.Debug.WriteLine("IDUSER : ");
@@ -318,6 +400,8 @@ namespace ITMS.Controllers
                     DbSet test = et.Set<tbl_report>();
                     test.Add(new tbl_report { rep_title = form["rep_title"].ToString().Trim(), rep_desc = form["rep_desc"].ToString(), IDUser = Int32.Parse(HttpContext.Session["IDUser"].ToString()), UserName = HttpContext.Session["UserName"].ToString(),submittedDate=System.DateTime.Now});
                     int return_value = et.SaveChanges();
+                    if(return_value > 0)
+                        app.NotifyUser("1", "Report", "Has Created a New Report");
                     TempData["return_value"] = return_value;
                 }
 
@@ -365,13 +449,21 @@ namespace ITMS.Controllers
                 int val = 0;
                 tbl_report t = new tbl_report()
                 {
+                    IDrep = model.IDrep,
                     rep_title = model.rep_title.ToString().Trim(),
-                    rep_desc = model.rep_desc.ToString().Trim()
+                    rep_desc = model.rep_desc.ToString().Trim(),
+                    IDUser = model.IDUser,
+                    UserName = model.UserName,
+                    submittedDate = model.submittedDate
+
                 };
 
                 et.tbl_report.Attach(t);
                 et.Entry(t).State = EntityState.Modified;
-                TempData["edit_return_value"] = et.SaveChanges();
+                val = et.SaveChanges();
+                if (val > 0)
+                    app.NotifyUser("1", "Report", "Has Made a Changes On a Report [" + model.rep_title.ToString().Trim() + "]");
+                TempData["edit_return_value"] = val;
                 return View("Index", model);
             }
             catch (Exception ex)
@@ -398,6 +490,37 @@ namespace ITMS.Controllers
                 }
                 else
                     TempData["del_return_value"] = 0;
+
+                return RedirectToAction("Index", "Report");
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+            return View("Index");
+        }
+
+        public ActionResult NotifyUser(int id)
+        {
+            try
+            {
+                string sql = "select * from tbl_report where IDrep = @id";
+                List<SqlParameter> para = new List<SqlParameter>()
+                {
+                    new SqlParameter(){ParameterName="@id", SqlDbType=SqlDbType.Int, Value=id}
+                };
+                DataSet ds = app.GetDataSet(sql, para);
+                if (ds.Tables.Count > 0)
+                {
+                    if(ds.Tables[0].Rows.Count > 0)
+                    {
+                        app.NotifyUser(ds.Tables[0].Rows[0]["IDUser"].ToString(), "Report", "Has Approve the Work Done by Technician On Your Report ["+ ds.Tables[0].Rows[0]["rep_title"].ToString() + "]");
+                        TempData["not_return_value"] = 1;
+                    }
+
+                }
+                else
+                    TempData["not_return_value"] = 0;
 
                 return RedirectToAction("Index", "Report");
             }
@@ -444,6 +567,39 @@ namespace ITMS.Controllers
 
                 sb.Append("\"id\": \"" + dr["IDUser"].ToString() + "\",");
                 sb.Append("\"value\": \"" + dr["UserName"].ToString()  + "\"");
+                sb.Append("},");
+            }
+            string j = callback + (sb.ToString() != "" ? "([" + sb.ToString().Remove(sb.ToString().Length - 1) + "])" : "");
+            Response.ClearHeaders();
+            Response.ClearContent();
+            Response.AddHeader("Content-type", "text/json");
+
+            Response.Write(j);
+            Response.Flush();
+            Response.End();
+        }
+
+
+        public void showTech()
+        {
+
+            Response.Cache.SetCacheability(HttpCacheability.ServerAndNoCache);
+            Response.Clear();
+            string callback = Request.Params["callback"] != null ? Request.Params["callback"] : "";
+            string term = Request.Params["term"] != null ? Request.Params["term"].ToString().Replace("'", "''") : "";
+
+
+            StringBuilder sb = new StringBuilder();
+
+            string sql = "select '0' IDUser, 'Please Choose' UserName union all select IDUser, UserName from tbl_admin a where User_Cat=2";
+            DataSet ds = app.GetDataSet(sql, null);
+
+            foreach (DataRow dr in ds.Tables[0].Rows)
+            {
+                sb.Append("{");
+
+                sb.Append("\"id\": \"" + dr["IDUser"].ToString() + "\",");
+                sb.Append("\"value\": \"" + dr["UserName"].ToString() + "\"");
                 sb.Append("},");
             }
             string j = callback + (sb.ToString() != "" ? "([" + sb.ToString().Remove(sb.ToString().Length - 1) + "])" : "");

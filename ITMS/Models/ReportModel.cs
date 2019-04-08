@@ -46,18 +46,37 @@ namespace ITMS.Models
             get;set;
         }
 
-        public prio priority
+        public int IDtechnician
+        {
+            get; set;
+        }
+
+        public string technician
+        {
+            get; set;
+        }
+
+        public int priority
         {
             get;set;
         }
 
+        public string task_type
+        {
+            get;set;
+        }
+
+        public int IDTicket
+        {
+            get;set;
+        }
+
+        public DateTime TicketDate
+        {
+            get;set;
+        }
 
     }
 
-    public enum prio:int
-    {
-        Urgent=1,
-        Normal=2,
-        Ignore=3
-    }
+
 }

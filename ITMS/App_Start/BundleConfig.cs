@@ -37,7 +37,8 @@ namespace ITMS
                       "~/Content/assets/vendor/charts/morris-bundle/morris.css",
                       "~/Content/assets/vendor/fonts/material-design-iconic-font/css/materialdesignicons.min.css",
                       "~/Content/assets/vendor/charts/c3charts/c3.css",
-                      "~/Content/assets/vendor/fonts/flag-icon-css/flag-icon.min.css"
+                      "~/Content/assets/vendor/fonts/flag-icon-css/flag-icon.min.css",
+                      "~/Content/assets/vendor/select2/css/select2.css"
                       ));
         }
     }

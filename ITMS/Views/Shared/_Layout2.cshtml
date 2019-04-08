@@ -30,6 +30,7 @@
     <script src="~/Content/assets/libs/js/dashboard-ecommerce.js"></script>
     <script src="~/Scripts/notify.js"></script>
     <script src="~/Scripts/notify.min.js"></script>
+    <script src="~/Content/assets/vendor/select2/js/select2.min.js"></script>
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -64,16 +65,18 @@
             font-size: 13px;
             color: #000;
             font-weight: bold;
-            
         }
-        .ui-menu-item:hover {
-            background: #4c8ef7;
-            color: #fff;
-        }
+
+            .ui-menu-item:hover {
+                background: #4c8ef7;
+                color: #fff;
+            }
+
         ul.ui-autocomplete {
             z-index: 1100;
         }
-        ul.ui-menu{
+
+        ul.ui-menu {
             list-style-type: none;
             width: 30%;
             position: absolute;
@@ -99,10 +102,10 @@
                 dataType: "text",
                 success: function (data) {
                     if (data != "") {
-                        $.notify(data, "info");
+                        $("#centerPage").notify(data, { position: "top center", className: "info", arrowShow: false });
                     }
 
-                    setTimeout(function () { get_noti_complete(); }, 10000);
+                    setTimeout(function () { get_noti_complete(); }, 5000);
                 }
             }
                 );
@@ -116,7 +119,7 @@
                 success: function (data) {
                     var obj = JSON.parse(data);                   
                     if (obj) {
-
+                        
                         var len = obj.data.length;
                         var parentTxt = "";
                         var txt = "";
@@ -124,9 +127,9 @@
                         if (len > 0) {
                             
                             for (var i = 0; i < len; i++) {
-
-                                if (obj.data[i].Desc && obj.data[i].From_User && obj.data[i].createdDate) {
-                                    console.log(obj.data[0].Desc);
+                                console.log(obj.data[0].From_User);
+                                if (obj.data[i].From_User && obj.data[i].createdDate) {
+                                    console.log(obj.data[0].From_User);
                                     txt = "<span class='notification-list-user-name'>" + obj.data[i].From_User + "</span>" + obj.data[i].Desc;
                                     createdDate = "<div class='notification-date'>" + obj.data[i].createdDate + "</div>";
                                     parentTxt = "<a href='#' class='list-group-item list-group-item-action'>"
@@ -136,7 +139,7 @@
                                         + txt
                                         + createdDate
                                         + "</div></div></a > ";
-                                    console.log(parentTxt);
+                                    
                                     $("#noti_listing").append(parentTxt);
                                 }
                             }
@@ -299,6 +302,15 @@
                             <li class="@Html.setClass("Report")">
                                 <a class="nav-link" href="@Url.Action("Index", "Report")"><i class="fab fa-fw fa-wpforms"></i>Report <span class="badge badge-success"></span></a>
                             </li>
+                            @if (HttpContext.Current.Session["User_Cat"] != null)
+                            {
+                                if (HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                                {
+                                    <li class="@Html.setClass("Account")">
+                                        <a class="nav-link" href="@Url.Action("EM", "Account")"><i class="fab fa-fw fa-wpforms"></i>Manage Users <span class="badge badge-success"></span></a>
+                                    </li>
+                                }
+                            }
                         </ul>
                     </div>
                 </nav>
@@ -313,7 +325,9 @@
         <div class="dashboard-wrapper">
             <div class="dashboard-ecommerce">
                 <div class="container-fluid dashboard-content ">
+                    <div id="centerPage"></div>
                     @RenderBody()
+
                 </div>
             </div>
             <!-- ============================================================== -->

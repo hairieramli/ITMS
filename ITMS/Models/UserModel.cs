@@ -12,6 +12,52 @@ namespace ITMS.Models
     public class UserModel
     {
         string defaultConnection = ConfigurationManager.ConnectionStrings["DefaultConnectionString"].ToString();
+
+        public int IDUser
+        {
+            get;set;
+        }
+        public string User_Name
+        {
+            get; set;
+        }
+        public string add_1
+        {
+            get; set;
+        }
+        public string add_2
+        {
+            get; set;
+        }
+        public string add_poscode
+        {
+            get; set;
+        }
+        public string add_city
+        {
+            get; set;
+        }
+        public string add_state
+        {
+            get; set;
+        }
+        public string UserEmail
+        {
+            get; set;
+        }
+        public string UserPassword
+        {
+            get; set;
+        }
+        public int User_Cat
+        {
+            get; set;
+        }
+        public string phone_no
+        {
+            get;set;
+        }
+
         [Required(ErrorMessage ="Please enter your registered email")]
         public string UserName
         {
