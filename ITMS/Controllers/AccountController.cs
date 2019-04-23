@@ -12,6 +12,7 @@ using System.Security;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Data.Entity;
+using System.IO;
 
 namespace ITMS.Controllers
 {
@@ -53,6 +54,41 @@ namespace ITMS.Controllers
             return View("View");
         }
 
+        public ActionResult ProfilePage()
+        {
+            string id = HttpContext.Session["IDUser"].ToString();
+            UserModel model = new UserModel();
+            loadData(id, model);
+            ViewData["IDUser"] = model.IDUser;
+            ViewData["UserName"] = model.User_Name;
+            ViewData["UserEmail"] = model.UserEmail;
+            ViewData["PhoneNo"] = model.phone_no;
+            ViewData["addr"] = model.add_1 + ",<br>" + model.add_2 + ",<br>" + model.add_poscode + ", " + model.add_city + ",<br>" + model.add_state;
+            ViewData["Position"] = model.User_Cat == 1 ? "ADMINISTRATOR" : model.User_Cat == 2 ? "TECHNICIAN" : "STAFF";
+            ViewData["HasPic"] = model.HasPicture;
+
+            string sql = "select * from (select (select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep=b.IDrep where (a.IDUser=@id or b.IDtechnician=@id))total," +
+"(select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep = b.IDrep where (a.IDUser = @id or b.IDtechnician =@id) and b.ticketStatus = 'Pending')pending," +
+"(select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep = b.IDrep where (a.IDUser = @id or b.IDtechnician = @id) and b.ticketStatus = 'Work Done')workdone," +
+"(select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep = b.IDrep where (a.IDUser = @id or b.IDtechnician = @id) and b.ticketStatus = 'In Process')inprocess)tbl";
+
+            List<SqlParameter> para = new List<SqlParameter>()
+            {
+                new SqlParameter(){ParameterName="@id", SqlDbType= SqlDbType.Int, Value=model.IDUser}
+            };
+            DataSet ds = app.GetDataSet(sql, para);
+            if(ds.Tables.Count > 0)
+                if(ds.Tables[0].Rows.Count > 0)
+                {
+                    ViewData["total"] = ds.Tables[0].Rows[0]["total"].ToString();
+                    ViewData["inprocess"] = ds.Tables[0].Rows[0]["inprocess"].ToString();
+                    ViewData["pending"] = ds.Tables[0].Rows[0]["pending"].ToString();
+                    ViewData["workdone"] = ds.Tables[0].Rows[0]["workdone"].ToString();
+                }
+
+            return View("Profile", model);
+        }
+
         [AllowAnonymous]
         [HttpPost]
         public ActionResult Index(UserModel model)
@@ -81,6 +117,10 @@ namespace ITMS.Controllers
                         HttpContext.Session["UserEmail"] = dr["UserEmail"].ToString();
                         HttpContext.Session["User_Cat"] = dr["User_Cat"].ToString();
                         HttpContext.Session["lastLoginDate"] = dr["lastLoginDate"].ToString();
+                        if (dr["profile_pic"] != DBNull.Value)
+                            HttpContext.Session["Haspic"] = 1;
+                        else
+                            HttpContext.Session["Haspic"] = 0;
                         HttpContext.Session.Timeout = 20;
                         FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(
                             1,
@@ -127,6 +167,13 @@ namespace ITMS.Controllers
         {
             id = id.Replace("r_", "");
             UserModel model = new UserModel();
+            loadData(id, model);
+            return View("View", model);
+        }
+
+        void loadData(string id, UserModel model)
+        {
+            //UserModel model = new UserModel();
             try
             {
                 string sql = "select a.*, (case when a.User_Cat is not null then a.User_Cat else 1 end)user_cat from tbl_admin a " +
@@ -147,6 +194,10 @@ namespace ITMS.Controllers
                     model.UserPassword = dt.Rows[0]["UserPassword"].ToString();
                     model.User_Cat = Int32.Parse(dt.Rows[0]["user_cat"].ToString());
                     model.phone_no = dt.Rows[0]["phone_no"].ToString();
+                    if (dt.Rows[0]["profile_pic"] != DBNull.Value)
+                        model.HasPicture = 1;
+                    else
+                        model.HasPicture = 0;
 
                     List<SelectListItem> list = new List<SelectListItem>();
                     DataTable sl = app.loadList("user_cat");
@@ -170,7 +221,6 @@ namespace ITMS.Controllers
                 TempData["edit_value"] = 0;
                 TempData["error"] = ex.Message;
             }
-            return View("View", model);
         }
 
         // GET: Account/Create
@@ -260,7 +310,7 @@ namespace ITMS.Controllers
                     new SqlParameter(){ParameterName="@add_city", SqlDbType=SqlDbType.VarChar, Value=model.add_city},
                     new SqlParameter(){ParameterName="@add_state", SqlDbType=SqlDbType.VarChar, Value=model.add_state},
                     new SqlParameter(){ParameterName="@password", SqlDbType=SqlDbType.VarChar, Value=model.UserPassword},
-                    //new SqlParameter(){ParameterName="@user_cat", SqlDbType=SqlDbType.Int, Value=2},
+                    new SqlParameter(){ParameterName="@user_cat", SqlDbType=SqlDbType.Int, Value=model.User_Cat},
                     new SqlParameter(){ParameterName="@phone_no", SqlDbType=SqlDbType.VarChar, Value=model.phone_no},
                     new SqlParameter(){ParameterName="@id", SqlDbType=SqlDbType.Int, Value=model.IDUser}
                 };
@@ -271,7 +321,20 @@ namespace ITMS.Controllers
                     TempData["edit_return_value"] = 1;
                 else
                     TempData["edit_return_value"] = 0;
-                
+
+                List<SelectListItem> list = new List<SelectListItem>();
+                DataTable sl = app.loadList("user_cat");
+                foreach (DataRow row in sl.Rows)
+                {
+                    list.Add(new SelectListItem()
+                    {
+                        Text = row["item_desc"].ToString(),
+                        Value = row["item_code"].ToString()
+                    });
+                }
+
+                ViewData["UserCatList"] = new SelectList(list, "Value", "Text", model.User_Cat.ToString());
+
                 return View("View", model);
             }
             catch (Exception ex)
@@ -301,6 +364,119 @@ namespace ITMS.Controllers
             catch
             {
                 return View();
+            }
+        }
+
+        [HttpPost]
+        public ActionResult Picture(HttpPostedFileBase fileUpload, FormCollection form)
+        {
+            TempData.Clear();
+            try
+            {
+                if(fileUpload != null)
+                {
+                    string resultmsg = "Invalid Image";
+                    string filetype = Path.GetExtension(fileUpload.FileName);
+                    string filename = Path.GetFileName(fileUpload.FileName);
+                    string IDUser = form["hidIDUser"].ToString();
+
+                    string contenttype = String.Empty;
+
+                    switch (filetype)
+                    {
+                        case ".jpeg":
+                            contenttype = "image/jpg";
+
+                            break;
+                        case ".jpg":
+                            contenttype = "image/jpg";
+
+                            break;
+                        case ".png":
+                            contenttype = "image/png";
+
+                            break;
+                        case ".gif":
+                            contenttype = "image/gif";
+
+                            break;
+                    }
+
+                    if (contenttype != String.Empty)
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            fileUpload.InputStream.CopyTo(ms);
+                            byte[] array = ms.GetBuffer();
+
+                            string strQuery = "UPDATE tbl_admin SET profile_pic=@pic, profile_pic_type=@type WHERE IDUser=@id";
+
+                            List<SqlParameter> para = new List<SqlParameter>()
+                            {
+                                new SqlParameter() {ParameterName="@pic", SqlDbType=SqlDbType.VarBinary, Value=array },
+                                new SqlParameter() {ParameterName="@type", SqlDbType=SqlDbType.VarChar, Value=contenttype },
+                                new SqlParameter() {ParameterName="@id", SqlDbType=SqlDbType.Int, Value=IDUser }
+                            };
+                            string resultType = "0";
+                            string result = app.Exec(strQuery, para);
+                            if (result == "")
+                            {
+                                TempData["return_upload"] = 1;
+                            }
+                            else
+                            {
+                                TempData["return_upload"] = 0;
+                            }
+                        }
+                    }
+                    UserModel model = new UserModel();
+                    loadData(IDUser, model);
+                }
+                else
+                {
+                    
+                }
+            }
+            catch(Exception ex)
+            {
+                TempData["return_upload_error"] = ex.Message;
+                System.Diagnostics.Debug.WriteLine("ERROR EX PIC: " + ex.Message);
+            }
+
+            return View("View");
+        }
+
+        public void getImage(string id)
+        {
+            DataSet ds = app.GetDataSet("select profile_pic, profile_pic_type from tbl_admin where IDUser='" + id + "'", null);
+            byte[] btImage = null;
+
+            if (ds.Tables.Count > 0)
+            {
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    if(ds.Tables[0].Rows[0]["profile_pic"] != DBNull.Value)
+                    {
+                        btImage = (byte[])ds.Tables[0].Rows[0]["profile_pic"];
+
+                        HttpContext.Response.Buffer = true;
+
+                        HttpContext.Response.Charset = "";
+
+                        HttpContext.Response.Cache.SetCacheability(HttpCacheability.NoCache);
+
+                        HttpContext.Response.ContentType = ds.Tables[0].Rows[0]["profile_pic_type"].ToString();
+
+                        HttpContext.Response.AddHeader("content-disposition", "attachment;filename=Profile");
+
+                        HttpContext.Response.BinaryWrite(btImage);
+
+                        HttpContext.Response.Flush();
+
+                        HttpContext.Response.End();
+                    }
+
+                }
             }
         }
 
@@ -416,6 +592,8 @@ namespace ITMS.Controllers
             return Content(sb.ToString(), "application/json");
 
         }
+
+
 
         private string DtToJson(DataTable dt)
         {

@@ -91,15 +91,12 @@
         });
 
 
+
         @if(TempData["return_value"] != null)
         {
-            if(TempData["error"] != null)
+            if((int)TempData["return_value"] <= 0)
             {
-                @:$("#btnCreate").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
-            }
-            else if((int)TempData["return_value"] <= 0)
-            {
-                @:$("#add_inv").addClass("show");
+                @:$("#add_rep").addClass("show");
                 @:$("#btnCreate").notify("Failed to add new Report.", { position: "bottom", className: "error" });
             }
             else
@@ -107,65 +104,75 @@
                 @:$("#tblData").notify("Succesfully added new Report", { position: "top center", className: "success", arrowShow: false });
             }
         }
+        else if(TempData["return_error"] != null)
+        {
+            @:$("#btnCreate").notify(@TempData["return_error"].ToString(), { position: "bottom", className:"warn" });
+        }
+        else if(TempData["noti_error"] != null)
+        {
+            @:$("#tblData").notify(@TempData["noti_error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
+        }
         else if(TempData["not_return_value"] != null)
         {
-            if(TempData["error"] != null)
-            {
-                @:$("#tblData").notify(@TempData["error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
-            }
-            else if((int)TempData["not_return_value"] > 0)
+
+            if((int)TempData["not_return_value"] > 0)
             {
                 @:$("#tblData").notify("User has been notified", { position: "top center", className:"success", arrowShow:false});
             }
         }
+        else if(TempData["edit_error"] != null)
+        {
+            @:$("#tblData").notify(@TempData["edit_error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
+        }
         else if(TempData["edit_value"] != null)
         {
-            if(TempData["error"] != null)
-            {
-                @:$("#tblData").notify(@TempData["error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
-            }
-            else if((int)TempData["edit_value"] > 0)
+
+            if((int)TempData["edit_value"] > 0)
             {
                 @:$("#edit_rep").show();
             }
         }
+        else if(TempData["edit_return_error"] != null)
+        {
+            @:$("#edit_rep").show();
+            @:$("#btnSave").notify(@TempData["edit_return_error"].ToString(), { position: "bottom", className:"warn" });
+        }
         else if(TempData["edit_return_value"] != null)
         {
-            @:$("#edit_inv").show();
-            if(TempData["error"] != null)
+            @:$("#edit_rep").show();
+
+            if((int)TempData["edit_return_value"] > 0)
             {
-                @:$("#btnSave").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
+                @:$("#edit_rep").notify("Saved Changes successfully.", { position: "top center", className: "success", arrowShow:false });
             }
-            else if((int)TempData["edit_return_value"] > 0)
-            {
-                @:$("#btnSave").notify("Saved Changes successfully.", { position: "bottom", className:"success" });
-            }
+        }
+        else if(TempData["del_error"] != null)
+        {
+            @:$("#edit_rep").show();
+            @:$("#btnDelete").notify(@TempData["del_error"].ToString(), { position: "bottom", className:"warn" });
         }
         else if(TempData["del_return_value"] != null)
         {
-            if(TempData["error"] != null)
-            {
-                @:$("#edit_inv").show();
-                @:$("#btnDelete").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
-            }
-            else if((int)TempData["del_return_value"] > 0)
+
+            if((int)TempData["del_return_value"] > 0)
             {
                 @:$("#tblData").notify("Succesfully removed Report", { position: "top center", className:"success", arrowShow:false});
             }
             else if ((int)TempData["del_return_value"] <= 0)
             {
-                @:$("#edit_inv").show();
+                @*@:$("#edit_rep").show();*@
                 @:$("#btnDelete").notify("Failed to remove Report", { position: "bottom", className:"error" });
             }
         }
+        else if(TempData["tic_return_error"] != null)
+        {
+            @:$("#edit_tic").show();
+            @:$("#btnGenTic").notify(@TempData["tic_return_error"].ToString(), { position: "bottom", className:"warn" });
+        }
         else if(TempData["tic_return_value"] != null)
         {
-            if(TempData["error"] != null)
-            {
-                @:$("#edit_tic").show();
-                @:$("#btnGenTic").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
-            }
-            else if((int)TempData["tic_return_value"] > 0)
+
+            if((int)TempData["tic_return_value"] > 0)
             {
                 @:$("#tblData").notify("Succesfully generated ticket for the report.", { position: "top center", className:"success", arrowShow:false});
             }
@@ -177,20 +184,12 @@
         }
         else if(TempData["edit_tic_value"] != null)
         {
-            if(TempData["error"] != null)
+
+            if((int)TempData["edit_tic_value"] > 0)
             {
-                @:$("#edit_tic").show();
-                @:$("#btnGenTic").notify(@TempData["error"].ToString(), { position: "bottom", className:"warn" });
+                @:$("#tblData").notify("Succesfully updated the ticket status.", { position: "top center", className:"success", arrowShow:false});
             }
-            else if((int)TempData["edit_tic_value"] > 0)
-            {
-                @:$("#tblData").notify("Work status has been updated successfully.", { position: "top center", className:"success", arrowShow:false});
-            }
-            else if ((int)TempData["edit_tic_value"] <= 0)
-            {
-                @:$("#edit_tic").show();
-                @:$("#btnGenTic").notify("Failed to update, please try again.", { position: "bottom", className:"error" });
-            }
+
         }
     }
 
@@ -265,7 +264,8 @@
                 @Html.AntiForgeryToken();
                 @Html.HiddenFor(model => model.IDrep, "");
                 @Html.HiddenFor(model => model.IDUser, "");
-
+                @Html.HiddenFor(model => model.UserName, "");
+                @Html.HiddenFor(model => model.submittedDate, "");
                 <div class="form-group">
                     <label class="col-form-label">Title</label>
                     @Html.TextBoxFor(model => model.rep_title, "", new { @class = "form-control", @required = "required" })
@@ -279,17 +279,18 @@
                         <tr>
                             <th>Submitted By</th>
                             <th>:</th>
-                            <td>@Html.LabelFor(Model => Model.UserName, Model!= null ? Model.UserName.ToUpperInvariant(): "", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                            <td><label class="col-form-label displayReport">@Html.DisplayFor(model => model.UserName)</label></td>
+                            @*<td>@Html.LabelFor(Model => Model.UserName, Model != null ? Model.UserName.ToUpperInvariant() : "", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>*@
                         </tr>
                         <tr>
                             <th>Status</th>
                             <th>:</th>
-                            <td>@Html.LabelFor(Model => Model.ticketStatus, Model != null ? Model.ticketStatus.ToUpperInvariant():"", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                            <td><label class="col-form-label displayReport">@Html.DisplayFor(model => model.ticketStatus)</label></td>
                         </tr>
                         <tr>
                             <th>Submitted Date</th>
                             <th>:</th>
-                            <td>@Html.LabelFor(Model => Model.submittedDate, Model!=null ? String.Format("{0:dd MMM yyy hh:mm}", Model.submittedDate):"", new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                            <td><label class="col-form-label displayReport">@Html.DisplayFor(model => model.submittedDate)</label></td>
                         </tr>
                         @if (Model != null)
                         {
@@ -298,49 +299,57 @@
                                 <tr>
                                     <th>Assigned Technician</th>
                                     <th>:</th>
-                                    <td>@Html.LabelFor(Model => Model.technician, Model.technician.ToUpperInvariant(), new { @class = "col-form-label", @style = "color:#2DAB11;font-family:arial;font-weight:bold" })</td>
+                                    <td><label class="col-form-label displayReport">@Html.DisplayFor(model => model.technician)</label></td>
                                 </tr>
                             }
                         }
                     </table>
                 </div>
-
-                if (HttpContext.Current.Session["User_Cat"] != null && Model != null)
+                if (HttpContext.Current.Session["User_Cat"] != null)
                 {
-                    if (HttpContext.Current.Session["User_Cat"].ToString() == "3")
+                    if (HttpContext.Current.Session["User_Cat"].ToString() == "3" && Model != null)
                     {
-                        <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
-
-                    }
-                    if ((HttpContext.Current.Session["User_Cat"].ToString() == "1" || HttpContext.Current.Session["User_Cat"].ToString() == "3") && Model.ticketStatus.ToString().ToLower() == "pending")
-                    {
-                        <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Remove Report</a>
-                    }
-                }
-                if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
-                {
-                    if (HttpContext.Current.Session["User_Cat"].ToString() == "1")
-                    {
-                        if (Model.ticketStatus.ToString().ToLower() == "work done")
+                        if (Model.ticketStatus != null)
                         {
-                            <a id="btnNotify" href="/Report/NotifyUser/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Notify User</a>
-                        }
-                        if (Model.ticketStatus.ToString().ToLower() == "pending")
-                        {
-                            <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">Generate Ticket</button>
+                            if (Model.ticketStatus.ToString().ToLower() == "pending")
+                            {
+                                <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
+                                <a id="btnDelete" href="/Report/Delete/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Remove Report</a>
+                            }
+                            else if (Model.ticketStatus.ToString().ToLower() == "work done")
+                            {
+                                <a id="btnNotify" href="/Report/NotifyUser/@(Model != null ? Model.IDrep:0)" class="btn btn-danger">Notify User</a>
+                                <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
+                            }
                         }
                         else
                         {
                             <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
                         }
                     }
+                    else if (HttpContext.Current.Session["User_Cat"].ToString() == "1" && Model != null)
+                    {
+                        if (Model.ticketStatus != null)
+                        {
+                            if (Model.ticketStatus.ToString().ToLower() == "pending")
+                            {
+                                <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">Generate Ticket</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
+                            }
+                        }
+                    }
                     else
                     {
-
                         <button class="btn btn-success" type="button" data-toggle="modal" data-target="#edit_tic">View Ticket</button>
                     }
                 }
-
             }
         </div>
 
@@ -361,17 +370,19 @@
                         @Html.Hidden("hidRep", Model != null ? Model.IDrep : 0);
                         @Html.Hidden("hidTic", Model != null ? Model.IDTicket : 0);
                         @Html.Hidden("TicDate", Model != null ? Model.TicketDate.ToString() : "0");
+                        @Html.Hidden("hidTech", Model != null ? Model.IDtechnician.ToString() : "0");
+                        @Html.Hidden("hidPrio", Model != null ? Model.priority.ToString() : "0");
                         <div class="form-group">
                             <label class="col-form-label">Task Type</label>
                             @if (Model != null)
                             {
                                 if (Model.IDTicket != 0)
                                 {
-                                    @Html.TextBox("txt_task_type", Model != null ? Model.task_type : "", new { @class = "form-control", @required = "required", @readonly="readonly"})
+                                    @Html.TextBox("txt_task_type", Model != null ? Model.task_type : "", new { @class = "form-control", @required = "required", @readonly = "readonly" })
                                 }
                                 else
                                 {
-                                    @Html.TextBox("txt_task_type", Model != null ? Model.task_type : "", new { @class = "form-control", @readonly = "readonly" })
+                                    @Html.TextBox("txt_task_type", Model != null ? Model.task_type : "", new { @class = "form-control" })
                                 }
                             }
 
@@ -382,7 +393,7 @@
                             {
                                 if (Model.IDTicket != 0)
                                 {
-                                    @Html.DropDownList("ddl_prio", ViewData["priorityList"] as IEnumerable<SelectListItem>, new { @class = "form-control", @Enabled="false" })
+                                    @Html.DropDownList("ddl_prio", ViewData["priorityList"] as IEnumerable<SelectListItem>, new { @class = "form-control", @disabled = "disabled" })
                                 }
                                 else
                                 {
@@ -398,7 +409,7 @@
                             {
                                 if (Model.IDtechnician != 0)
                                 {
-                                    @Html.DropDownList("ddl_tech", ViewData["techList"] as IEnumerable<SelectListItem>, new { @class = "form-control select2", @Enabled="false" })
+                                    @Html.DropDownList("ddl_tech", ViewData["techList"] as IEnumerable<SelectListItem>, new { @class = "form-control select2", @disabled = "disabled" })
                                 }
                                 else
                                 {
@@ -412,25 +423,46 @@
                         <div class="form-group">
                             @if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
                             {
-                                if (Model.ticketStatus.ToLower() != "pending" && Model.ticketStatus.ToLower() != "work done" && HttpContext.Current.Session["User_Cat"].ToString() == "2")
+                                if (Model.ticketStatus != null)
                                 {
+                                    if (Model.ticketStatus.ToLower() != "pending" && Model.ticketStatus.ToLower() != "work done" && HttpContext.Current.Session["User_Cat"].ToString() == "3")
+                                    {
 
-                                    <label class="col-form-label">Update Status</label>
-                                    @Html.DropDownList("ddl_status", ViewData["work_status"] as IEnumerable<SelectListItem>, new { @class="form-control"});
+                                        <label class="col-form-label">Update Status</label>
+                                        @Html.DropDownList("ddl_status", ViewData["work_status"] as IEnumerable<SelectListItem>, new { @class = "form-control" });
+                                    }
+                                }
+                            }
+                        </div>
+                        <div class="form-group">
+                            @if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
+                            {
+                                if (Model.ticketStatus != null)
+                                {
+                                    if (Model.ticketStatus.ToLower() != "pending" && Model.ticketStatus.ToLower() != "work done" && HttpContext.Current.Session["User_Cat"].ToString() == "3")
+                                    {
+
+                                        <label class="col-form-label">Technician Attendance</label>
+                                        @Html.DropDownList("ddl_attendance", ViewData["attendance_status"] as IEnumerable<SelectListItem>, new { @class = "form-control" });
+                                    }
                                 }
                             }
                         </div>
                         if (Model != null && HttpContext.Current.Session["User_Cat"] != null)
                         {
-                            if (Model.ticketStatus.ToString().ToLower() == "pending" && HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                            if (Model.ticketStatus != null)
                             {
-                                <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
-                                @*<button id="btnCancelTic" class="btn btn-danger" type="submit">Cancel Ticket</button>*@
+                                if (Model.ticketStatus.ToString().ToLower() == "pending" && HttpContext.Current.Session["User_Cat"].ToString() == "1")
+                                {
+                                    <button id="btnGenTic" class="btn btn-primary" type="submit">Generate</button>
+                                    @*<button id="btnCancelTic" class="btn btn-danger" type="submit">Cancel Ticket</button>*@
+                                }
+                                else if (Model.ticketStatus.ToLower() == "in process" && HttpContext.Current.Session["IDUser"].ToString() == Model.IDUser.ToString())
+                                {
+                                    <button id="btnGenTic" class="btn btn-primary" type="submit">Update Status</button>
+                                }
                             }
-                            else if (Model.ticketStatus.ToLower() == "in process" && HttpContext.Current.Session["IDUser"].ToString() == Model.IDtechnician.ToString())
-                            {
-                                <button id="btnGenTic" class="btn btn-primary" type="submit">Update Status</button>
-                            }
+
                         }
 
                         <button class="btn btn-default" data-dismiss="modal" type="button">Cancel</button>

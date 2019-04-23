@@ -177,31 +177,48 @@
             </div>
             <div class="card-footer border-top">
                 <button type="submit" class="btn btn-success">Create</button>
-                <button type="button" onclick="$('#add_emp').hide();">Cancel</button>
+                <button type="button" class="btn btn-default" onclick="$('#add_emp').hide();">Cancel</button>
             </div>
         }
         </div>
     </div>
-    <div id="add_pic" class="card collapse">
-        <h5 class="card-header">Upload or Remove Picture Profile</h5>
-        <div class="card-body">
-            @using (Html.BeginForm("Picture", "Account", FormMethod.Post, new { @name = "FormPicEmp" }))
-            {
-                @Html.AntiForgeryToken();
+    <div id="add_pic" data-keyboard="false" aria-hidden="true" class="modal fade hide" style="" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Picture</h5>
+                </div>
+                <div class="modal-body">
+                    @using (Html.BeginForm("Picture", "Account", FormMethod.Post, new {enctype = "multipart/form-data" }))
+                    {
+                        @Html.AntiForgeryToken();
+                        @Html.Hidden("hidIDUser", Model != null ? Model.IDUser.ToString() : "0");
+                    <div class="form-group">
+                        @if (Model != null)
+                        {
+                            if (Model.HasPicture.ToString() == "1" && Model.IDUser.ToString() != "" && Model.IDUser.ToString() != "0")
+                            {
+                                <center><img name="pic_profile" class="pic_frame" id="pic_profile" src="/Account/getImage/@Model.IDUser.ToString()" alt="profile_pic" /></center>
+                            }
+                            else
+                            {
+                                <center><img name="pic_profile" class="pic_frame" id="pic_profile" src="~/Content/assets/images/avatar-1.jpg" alt="profile_pic" /></center>
+                            }
+                        }
 
-                <div class="form-group">
-                    <center><img id="pic_profile" src="~/Content/assets/images/avatar-4.jpg" alt="profile_pic" /></center>
+                    </div>
+                        <div class="custom-file mb-3">
+                            <input name="fileUpload" type="file" class="custom-file-input" id="customFile">
+                            <label class="custom-file-label" for="customFile">Upload Picture</label>
+                        </div>
+                        <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    }
                 </div>
-                <div class="form-group">
-                    <center><a id="btnDelete" href="/Employee/removeImg/" class="btn btn-danger">Remove Image</a></center>
-                </div>
-                <div class="custom-file mb-3">
-                    <input type="file" class="custom-file-input" id="customFile">
-                    <label class="custom-file-label" for="customFile">Upload Image</label>
-                </div>
-                <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
+                <div class="modal-footer">
 
-            }
+                </div>
+            </div>
         </div>
     </div>
     <div id="edit_emp" class="collapse">
@@ -214,38 +231,38 @@
             @using (Html.BeginForm("Edit", "Account", FormMethod.Post, new { @name = "FormDetailsUsers" }))
             {
                 @Html.AntiForgeryToken();
-                @Html.HiddenFor(Model => Model.IDUser, "");
+                @Html.HiddenFor(model => model.IDUser, "");
             <div class="card-body">
 
                 <div class="form-group">
                     <label class="col-form-label">Name</label>
-                    @Html.TextBoxFor(Model => Model.User_Name, new { @class = "form-control", @required = "required" })
+                    @Html.TextBoxFor(model => model.User_Name, new { @class = "form-control", @required = "required" })
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Address Line 1</label>
-                    @Html.TextBoxFor(Model => Model.add_1, new { @class = "form-control" })
+                    @Html.TextBoxFor(model => model.add_1, new { @class = "form-control" })
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Address Line 2</label>
-                    @Html.TextBoxFor(Model => Model.add_2, new { @class = "form-control" })
+                    @Html.TextBoxFor(model => model.add_2, new { @class = "form-control" })
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Postcode</label>
-                    @Html.TextBoxFor(Model => Model.add_poscode, new { @class = "form-control" })
+                    @Html.TextBoxFor(model => model.add_poscode, new { @class = "form-control" })
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">City</label>
-                    @Html.TextBoxFor(Model => Model.add_city, new { @class = "form-control" })
+                    @Html.TextBoxFor(model => model.add_city, new { @class = "form-control" })
 
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">State</label>
-                    @Html.TextBoxFor(Model => Model.add_state, new { @class = "form-control" })
+                    @Html.TextBoxFor(model => model.add_state, new { @class = "form-control" })
 
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Phone No</label>
-                    @Html.TextBoxFor(Model => Model.phone_no, new { @class = "form-control" })
+                    @Html.TextBoxFor(model => model.phone_no, new { @class = "form-control" })
 
                 </div>
 
@@ -256,7 +273,8 @@
                     <label class="col-form-label">Position</label>
                     @if (ViewData["UserCatList"] != null)
                     {
-                        @Html.DropDownList("position", ViewData["UserCatList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                        @Html.DropDownListFor(model => model.User_Cat, ViewData["UserCatList"] as IEnumerable<SelectListItem>, new { @class="form-control"});
+                        @*@Html.DropDownList("position", ViewData["UserCatList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })*@
                     }
 
                 </div>
@@ -265,12 +283,12 @@
                 <h3>Login Details</h3>
                 <div class="form-group">
                     <label class="col-form-label">Email</label>
-                    @Html.LabelFor(Model => Model.UserEmail, Model != null ? Model.UserEmail : "", new { @class = "form-control", @type = "email" })
+                    @Html.LabelFor(model => model.UserEmail, Model != null ? Model.UserEmail : "", new { @class = "form-control", @type = "email", @required="required" })
 
                 </div>
                 <div class="form-group">
                     <label class="col-form-label">Set Password</label>
-                    @Html.TextBoxFor(Model => Model.UserPassword, new { @class = "form-control", @type = "password" })
+                    @Html.TextBoxFor(model => model.UserPassword, new { @class = "form-control", @type = "password", @required = "required" })
 
                 </div>
                 @*<div class="form-group">
@@ -282,6 +300,13 @@
             <div class="card-footer border-top">
                 <button id="btnSubmit" type="submit" class="btn btn-success">Save Changes</button>
                 <a id="btnDelete" href="/Account/Delete/@(Model != null ? Model.IDUser:0)" class="btn btn-danger">Delete User</a>
+                @if(Model != null)
+                {
+                    if(Model.IDUser.ToString() != "" && Model.IDUser.ToString() != "0")
+                    {
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#add_pic">Upload Profile Picture</button>
+                    }
+                }
             </div>
         }
         </div>

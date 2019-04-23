@@ -35,7 +35,7 @@ namespace ITMS.Models
         {
             get; set;
         }
-
+        [DisplayFormat(DataFormatString ="{0:dd MMM yyy hh:mm}", ApplyFormatInEditMode =true)]
         public DateTime submittedDate
         {
             get; set;
@@ -70,8 +70,13 @@ namespace ITMS.Models
         {
             get;set;
         }
-
+        [DisplayFormat(DataFormatString = "{0:dd MMM yyy hh:mm}", ApplyFormatInEditMode = true)]
         public DateTime TicketDate
+        {
+            get;set;
+        }
+
+        public string attendanceStatus
         {
             get;set;
         }

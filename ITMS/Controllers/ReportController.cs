@@ -22,7 +22,15 @@ namespace ITMS.Controllers
         // GET: Report
         public ActionResult Index()
         {
+            TempData.Clear();
+            ViewData.Clear();
+            loadDD();
 
+            return View();
+        }
+
+        void loadDD()
+        {
             List<SelectListItem> list = new List<SelectListItem>();
             DataTable dt = app.loadList("priority");
             foreach (DataRow row in dt.Rows)
@@ -62,7 +70,10 @@ namespace ITMS.Controllers
             }
             ViewData["work_status"] = new SelectList(list, "Value", "Text", "0");
 
-            return View();
+            list = new List<SelectListItem>();
+            list.Add(new SelectListItem(){Text = "No",Value = "No"});
+            list.Add(new SelectListItem() { Text = "Yes", Value = "Yes" });
+            ViewData["attendance_status"] = new SelectList(list, "Value", "Text", "0");
         }
 
         [HttpPost]
@@ -123,7 +134,7 @@ namespace ITMS.Controllers
             {
 
                 sb.Clear();
-                string sql = "select a.*, CASE WHEN a.noti_desc IS NOT NULL THEN (select TOP 1 UserName from tbl_admin where IDUser=a.from_user) + ' ' + a.noti_desc ELSE '' END as msg ,  (select TOP 1 UserName from tbl_admin where IDUser=a.from_user)from_user_name,(select TOP 1 UserName from tbl_admin where IDUser=a.to_user) as tto from tbl_notification a, tbl_admin b where a.to_user=@curr and a.to_user=b.IDUser order by a.createdDate DESC";
+                string sql = "select TOP 10 a.*, CASE WHEN a.noti_desc IS NOT NULL THEN (select TOP 1 UserName from tbl_admin where IDUser=a.from_user) + ' ' + a.noti_desc ELSE '' END as msg ,  (select TOP 1 UserName from tbl_admin where IDUser=a.from_user)from_user_name,(select TOP 1 UserName from tbl_admin where IDUser=a.to_user) as tto from tbl_notification a, tbl_admin b where a.to_user=@curr and a.to_user=b.IDUser order by a.createdDate DESC";
                 List<SqlParameter> para = new List<SqlParameter>()
                 {
                     new SqlParameter(){ParameterName="@curr", SqlDbType=SqlDbType.Int, Value=HttpContext.Session["IDUser"].ToString() }
@@ -303,8 +314,20 @@ namespace ITMS.Controllers
         // GET: Report/Details/5
         public ActionResult Details(string id)
         {
-            id = id.Replace("r_", "");
+            TempData.Clear();
             ReportModel model = new ReportModel();
+            loadData(id.Replace("r_", ""), model);
+            TempData["edit_value"] = 1;
+
+            return View("Index", model);
+        }
+
+
+        void loadData(string id, ReportModel model)
+        {
+            
+            id = id.Replace("r_", "");
+            loadDD();
             try
             {
                 string sql = "select a.*, (case when b.TicketDate is not null then b.TicketDate else '' end)TicketDate, (case when b.IDticket is not null then b.IDticket else '0' end)IDticket," +
@@ -312,7 +335,8 @@ namespace ITMS.Controllers
                     "(CASE WHEN b.ticketStatus IS NULL THEN 'pending' ELSE b.ticketStatus END)status, " +
                     "(case when b.priority is null then '1' else b.priority end)priority, " +
                     "(case when b.IDtechnician is not null then b.IDtechnician else '0' end)IDtechnician," +
-                    "(case when b.IDtechnician is not null then (select UserName from tbl_admin where IDUser=b.IDtechnician) else '' end)technician from tbl_report a " +
+                    "(case when b.IDtechnician is not null then (select UserName from tbl_admin where IDUser=b.IDtechnician) else '' end)technician" +
+                    "(case when b.attendanceStatus is not null then b.attendanceStatus else 'No' End)attendanceStatus from tbl_report a " +
                     "left join tbl_ticket b ON a.IDrep=b.IDrep where a.IDrep=" + id;
                 DataTable dt = app.GetDataSet(sql, null).Tables[0];
 
@@ -320,6 +344,7 @@ namespace ITMS.Controllers
                 {
 
                     model.IDrep = Int32.Parse(dt.Rows[0]["IDrep"].ToString());
+                    model.IDUser = Int32.Parse(dt.Rows[0]["IDUser"].ToString());
                     model.rep_title = dt.Rows[0]["rep_title"].ToString();
                     model.rep_desc = dt.Rows[0]["rep_desc"].ToString();
                     model.UserName = dt.Rows[0]["UserName"].ToString();
@@ -331,32 +356,10 @@ namespace ITMS.Controllers
                     model.IDTicket = Int32.Parse(dt.Rows[0]["IDticket"].ToString());
                     model.submittedDate = DateTime.Parse(dt.Rows[0]["submittedDate"].ToString());
                     model.TicketDate = DateTime.Parse(dt.Rows[0]["TicketDate"].ToString());
+                    model.attendanceStatus = dt.Rows[0]["attendanceStatus"].ToString();
                     //TempData["submittedDate"] = 
                     List<SelectListItem> list = new List<SelectListItem>();
-                    DataTable sl = app.loadList("priority");
-                    foreach (DataRow row in sl.Rows)
-                    {
-                        list.Add(new SelectListItem()
-                        {
-                            Text = row["item_desc"].ToString(),
-                            Value = row["item_code"].ToString()
-                        });
-                    }
-
-                    ViewData["priorityList"] = new SelectList(list, "Value", "Text", model.priority.ToString());
-
-                    list = new List<SelectListItem>();
-                    sl.Clear();
-                    sl = app.loadList("technician");
-                    foreach (DataRow row in sl.Rows)
-                    {
-                        list.Add(new SelectListItem()
-                        {
-                            Text = row["item_desc"].ToString(),
-                            Value = row["item_code"].ToString()
-                        });
-                    }
-                    ViewData["techList"] = new SelectList(list, "Value", "Text", model.IDtechnician.ToString());
+                    DataTable sl = new DataTable();
 
                     list = new List<SelectListItem>();
                     sl.Clear();
@@ -371,23 +374,50 @@ namespace ITMS.Controllers
                     }
                     ViewData["work_status"] = new SelectList(list, "Value", "Text", model.ticketStatus.ToString());
 
-                    TempData["edit_value"] = 1;
-                    TempData["edit_id"] = model.IDrep;
+                    list = new List<SelectListItem>();
+                    dt = app.loadList("priority");
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        list.Add(new SelectListItem()
+                        {
+                            Text = row["item_desc"].ToString(),
+                            Value = row["item_code"].ToString()
+                        });
+                    }
+
+                    ViewData["priorityList"] = new SelectList(list, "Value", "Text", model.priority.ToString());
+
+                    list = new List<SelectListItem>();
+                    dt.Clear();
+                    dt = app.loadList("technician");
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        list.Add(new SelectListItem()
+                        {
+                            Text = row["item_desc"].ToString(),
+                            Value = row["item_code"].ToString()
+                        });
+                    }
+                    ViewData["techList"] = new SelectList(list, "Value", "Text", model.IDtechnician.ToString());
+
+                    list = new List<SelectListItem>();
+                    list.Add(new SelectListItem() { Text = "No", Value = "No" });
+                    list.Add(new SelectListItem() { Text = "Yes", Value = "Yes" });
+                    ViewData["attendance_status"] = new SelectList(list, "Value", "Text", model.attendanceStatus);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("ERROR PRIO: " + ex.Message);
-                TempData["edit_value"] = 0;
-                TempData["error"] = ex.Message;
+                TempData["edit_error"] = ex.Message;
             }
-            return View("Index", model);
         }
 
         // GET: Report/Create
         [HttpPost]
         public ActionResult Create(FormCollection form)
         {
+            TempData.Clear();
+            loadDD();
             try
             {
                 if(HttpContext.Session["IDUser"] != null && HttpContext.Session["UserName"] != null)
@@ -405,12 +435,12 @@ namespace ITMS.Controllers
                     TempData["return_value"] = return_value;
                 }
 
-
+                
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                TempData["return_error"] = ex.Message;
                 return View("Index");
             }
             
@@ -442,11 +472,14 @@ namespace ITMS.Controllers
         [HttpPost]
         public ActionResult Edit(ReportModel model)
         {
+            TempData.Clear();
+            loadDD();
             try
             {
                 // TODO: Add update logic here
                 ITMSEntities2 et = new ITMSEntities2();
                 int val = 0;
+
                 tbl_report t = new tbl_report()
                 {
                     IDrep = model.IDrep,
@@ -455,7 +488,6 @@ namespace ITMS.Controllers
                     IDUser = model.IDUser,
                     UserName = model.UserName,
                     submittedDate = model.submittedDate
-
                 };
 
                 et.tbl_report.Attach(t);
@@ -464,11 +496,13 @@ namespace ITMS.Controllers
                 if (val > 0)
                     app.NotifyUser("1", "Report", "Has Made a Changes On a Report [" + model.rep_title.ToString().Trim() + "]");
                 TempData["edit_return_value"] = val;
+                loadData(model.IDrep.ToString(), model);
                 return View("Index", model);
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                loadData(model.IDrep.ToString(), model);
+                TempData["edit_return_error"] = ex.Message;
                 return View("Index", model);
             }
         }
@@ -476,6 +510,8 @@ namespace ITMS.Controllers
         // GET: Report/Delete/5
         public ActionResult Delete(int id)
         {
+            TempData.Clear();
+            loadDD();
             try
             {
                 string sql = "delete from tbl_report where IDrep=@id";
@@ -495,13 +531,15 @@ namespace ITMS.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                TempData["del_error"] = ex.Message;
             }
             return View("Index");
         }
 
         public ActionResult NotifyUser(int id)
         {
+            loadDD();
+            TempData.Clear();
             try
             {
                 string sql = "select * from tbl_report where IDrep = @id";
@@ -526,7 +564,7 @@ namespace ITMS.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                TempData["noti_error"] = ex.Message;
             }
             return View("Index");
         }

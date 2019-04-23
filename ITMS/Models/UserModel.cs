@@ -70,6 +70,11 @@ namespace ITMS.Models
             get;set;
         }
 
+        public int HasPicture
+        {
+            get;set;
+        }
+
         public DataRow getUser(string id)
         {
             DataSet ds = new DataSet();

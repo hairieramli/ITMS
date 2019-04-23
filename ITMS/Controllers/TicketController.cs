@@ -33,8 +33,15 @@ namespace ITMS.Controllers
         [HttpPost]
         public ActionResult Create(FormCollection form)
         {
+            TempData.Clear();
             try
             {
+                string IDUser = "0";
+                if(form["hidRep"].ToString() != "")
+                {
+                    IDUser = app.GetDataSet("select IDUser from tbl_report where IDrep=" + form["hidRep"].ToString(), null).Tables[0].Rows[0]["IDUser"].ToString();
+                }
+
                 if(form["hidTic"].ToString() != "0" && HttpContext.Session["UserName"] != null)
                 {
                     ITMSEntities2 et = new ITMSEntities2();
@@ -43,17 +50,20 @@ namespace ITMS.Controllers
                         IDticket = Int32.Parse(form["hidTic"].ToString()),
                         ticketStatus = form["ddl_status"].ToString(),
                         task_type = form["txt_task_type"].ToString(),
-                        priority = Int32.Parse(form["ddl_prio"].ToString()),
+                        priority = Int32.Parse(form["hidPrio"].ToString()),
                         TicketDate = DateTime.Parse(form["TicDate"].ToString()),
                         IDrep = Int32.Parse(form["hidRep"].ToString()),
-                        IDtechnician = Int32.Parse(form["ddl_tech"].ToString())
+                        IDtechnician = Int32.Parse(form["hidTech"].ToString())
                     };
 
                     et.tbl_ticket.Attach(t);
                     et.Entry(t).State = EntityState.Modified;
                     int return_value = et.SaveChanges();
                     if (return_value > 0)
-                        app.NotifyUser("1", "Ticket", "Has Changed of Ticket to WORK DONE.");
+                    {
+                        app.NotifyUser("1", "Ticket", "Has Changed the Ticket work status to WORK DONE.");
+                        app.NotifyUser(form["hidTech"].ToString(), "Ticket", "Has Changed the Ticket work status to WORK DONE.");
+                    }
                     TempData["edit_tic_value"] = return_value;
                 }
                 else if (HttpContext.Session["IDUser"] != null && HttpContext.Session["UserName"] != null && form["hidRep"].ToString() != "0" && form["ddl_tech"].ToString() != "0")
@@ -66,8 +76,12 @@ namespace ITMS.Controllers
                     DbSet test = et.Set<tbl_ticket>();
                     test.Add(new tbl_ticket { task_type = form["txt_task_type"].ToString().Trim(), priority = Int32.Parse(form["ddl_prio"].ToString()), TicketDate = DateTime.Now, IDrep=Int32.Parse(form["hidRep"].ToString()), IDtechnician=Int32.Parse(form["ddl_tech"].ToString()), ticketStatus="In Process" });
                     int return_value = et.SaveChanges();
+
                     if (return_value > 0)
-                        app.NotifyUser(form["ddl_tech"].ToString(), "Report", "Has Assigned You A Task.");
+                    {
+                        app.NotifyUser(form["ddl_tech"].ToString(), "Ticket", " Assigned You a Task.");
+                        app.NotifyUser(IDUser, "Ticket", " Has Generated Your Request to Ticket.");
+                    }
                     TempData["tic_return_value"] = return_value;
                 }
 
@@ -76,10 +90,9 @@ namespace ITMS.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("MASUK:::" + ex.Message);
 
                 TempData["tic_return_value"] = 0;
-                TempData["error"] = ex.Message;
+                TempData["tic_return_error"] = ex.Message;
                 return RedirectToAction("Index", "Report");
             }
         }
