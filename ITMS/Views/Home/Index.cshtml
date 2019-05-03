@@ -7,7 +7,65 @@
     <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
     <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
 </div>
-
+<div class="row">
+    <div style="display:none" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+        <div class="section-block">
+            <h3 class="section-title">My Campaign State</h3>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="mb-1">
+                    @if (ViewData["total"] != null)
+                    {
+                        @ViewData["total"];
+                    }
+                </h1>
+                <p>TOTAL REPORT</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="mb-1">
+                    @if (ViewData["pending"] != null)
+                    {
+                        @ViewData["pending"];
+                    }
+                </h1>
+                <p>PENDING</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="mb-1">
+                    @if (ViewData["workdone"] != null)
+                    {
+                        @ViewData["workdone"];
+                    }
+                </h1>
+                <p>WORK DONE</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="mb-1">
+                    @if (ViewData["inprocess"] != null)
+                    {
+                        @ViewData["inprocess"];
+                    }
+                </h1>
+                <p>IN PROCESS</p>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-4">
         <h2>Ticket</h2>
@@ -29,9 +87,7 @@
         <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
     </div>
     <div class="col-md-4">
-        <h2>@if (Session["UserEmail"] != null) {@Session["UserEmail"].ToString();}</h2>
-        <%=%>
-        <input id="Text1" type="text" />
+
     </div>
 </div>
 <script>

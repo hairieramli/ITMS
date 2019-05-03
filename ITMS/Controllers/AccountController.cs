@@ -59,32 +59,20 @@ namespace ITMS.Controllers
             string id = HttpContext.Session["IDUser"].ToString();
             UserModel model = new UserModel();
             loadData(id, model);
+            model.fromProfile = 1;
             ViewData["IDUser"] = model.IDUser;
             ViewData["UserName"] = model.User_Name;
             ViewData["UserEmail"] = model.UserEmail;
             ViewData["PhoneNo"] = model.phone_no;
-            ViewData["addr"] = model.add_1 + ",<br>" + model.add_2 + ",<br>" + model.add_poscode + ", " + model.add_city + ",<br>" + model.add_state;
+            string add1 = model.add_1 != "" ? model.add_1 + ",<br>" : "";
+            string add2 = model.add_2 != "" ? model.add_2 + ",<br>" : "";
+            string poscode = model.add_poscode != "" ? model.add_poscode + ", " : "";
+            string city = model.add_city != "" ? model.add_city + ",<br>" : "";       
+            ViewData["addr"] = add1 + add2 + poscode + city + model.add_state;
             ViewData["Position"] = model.User_Cat == 1 ? "ADMINISTRATOR" : model.User_Cat == 2 ? "TECHNICIAN" : "STAFF";
             ViewData["HasPic"] = model.HasPicture;
 
-            string sql = "select * from (select (select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep=b.IDrep where (a.IDUser=@id or b.IDtechnician=@id))total," +
-"(select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep = b.IDrep where (a.IDUser = @id or b.IDtechnician =@id) and b.ticketStatus = 'Pending')pending," +
-"(select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep = b.IDrep where (a.IDUser = @id or b.IDtechnician = @id) and b.ticketStatus = 'Work Done')workdone," +
-"(select COUNT(*) from tbl_report a inner join tbl_ticket b on a.IDrep = b.IDrep where (a.IDUser = @id or b.IDtechnician = @id) and b.ticketStatus = 'In Process')inprocess)tbl";
 
-            List<SqlParameter> para = new List<SqlParameter>()
-            {
-                new SqlParameter(){ParameterName="@id", SqlDbType= SqlDbType.Int, Value=model.IDUser}
-            };
-            DataSet ds = app.GetDataSet(sql, para);
-            if(ds.Tables.Count > 0)
-                if(ds.Tables[0].Rows.Count > 0)
-                {
-                    ViewData["total"] = ds.Tables[0].Rows[0]["total"].ToString();
-                    ViewData["inprocess"] = ds.Tables[0].Rows[0]["inprocess"].ToString();
-                    ViewData["pending"] = ds.Tables[0].Rows[0]["pending"].ToString();
-                    ViewData["workdone"] = ds.Tables[0].Rows[0]["workdone"].ToString();
-                }
 
             return View("Profile", model);
         }
@@ -198,6 +186,8 @@ namespace ITMS.Controllers
                         model.HasPicture = 1;
                     else
                         model.HasPicture = 0;
+
+                    model.fromProfile = 0;
 
                     List<SelectListItem> list = new List<SelectListItem>();
                     DataTable sl = app.loadList("user_cat");
@@ -321,6 +311,14 @@ namespace ITMS.Controllers
                     TempData["edit_return_value"] = 1;
                 else
                     TempData["edit_return_value"] = 0;
+                if (model.fromProfile == 1)
+                {
+                    loadData(model.IDUser.ToString(), model);
+                    model.fromProfile = 1;
+                }
+                else
+                    loadData(model.IDUser.ToString(), model);
+
 
                 List<SelectListItem> list = new List<SelectListItem>();
                 DataTable sl = app.loadList("user_cat");
@@ -334,14 +332,47 @@ namespace ITMS.Controllers
                 }
 
                 ViewData["UserCatList"] = new SelectList(list, "Value", "Text", model.User_Cat.ToString());
-
-                return View("View", model);
+                if (model.fromProfile == 1)
+                {
+                    model.fromProfile = 1;
+                    ViewData["IDUser"] = model.IDUser;
+                    ViewData["UserName"] = model.User_Name;
+                    ViewData["UserEmail"] = model.UserEmail;
+                    ViewData["PhoneNo"] = model.phone_no;
+                    string add1 = model.add_1 != "" ? model.add_1 + ",<br>" : "";
+                    string add2 = model.add_2 != "" ? model.add_2 + ",<br>" : "";
+                    string poscode = model.add_poscode != "" ? model.add_poscode + ", " : "";
+                    string city = model.add_city != "" ? model.add_city + ",<br>" : "";
+                    ViewData["addr"] = add1 + add2 + poscode + city + model.add_state;
+                    ViewData["Position"] = model.User_Cat == 1 ? "ADMINISTRATOR" : model.User_Cat == 2 ? "TECHNICIAN" : "STAFF";
+                    ViewData["HasPic"] = model.HasPicture;
+                    return View("Profile", model);
+                }                    
+                else
+                    return View("View", model);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("TEST ERROR:" + ex.Message);
                 TempData["error"] = ex.Message;
-                return View("View", model);
+                if (model.fromProfile == 1)
+                {
+                    model.fromProfile = 1;
+                    ViewData["IDUser"] = model.IDUser;
+                    ViewData["UserName"] = model.User_Name;
+                    ViewData["UserEmail"] = model.UserEmail;
+                    ViewData["PhoneNo"] = model.phone_no;
+                    string add1 = model.add_1 != "" ? model.add_1 + ",<br>" : "";
+                    string add2 = model.add_2 != "" ? model.add_2 + ",<br>" : "";
+                    string poscode = model.add_poscode != "" ? model.add_poscode + ", " : "";
+                    string city = model.add_city != "" ? model.add_city + ",<br>" : "";
+                    ViewData["addr"] = add1 + add2 + poscode + city + model.add_state;
+                    ViewData["Position"] = model.User_Cat == 1 ? "ADMINISTRATOR" : model.User_Cat == 2 ? "TECHNICIAN" : "STAFF";
+                    ViewData["HasPic"] = model.HasPicture;
+                    return View("Profile", model);
+                }
+                else
+                    return View("View", model);
             }
         }
 
@@ -371,6 +402,10 @@ namespace ITMS.Controllers
         public ActionResult Picture(HttpPostedFileBase fileUpload, FormCollection form)
         {
             TempData.Clear();
+            string fromProfile = "0";
+            UserModel model = new UserModel();
+            if (form["fromProfile"] != null)
+                fromProfile = form["fromProfile"].ToString();
             try
             {
                 if(fileUpload != null)
@@ -429,8 +464,23 @@ namespace ITMS.Controllers
                             }
                         }
                     }
-                    UserModel model = new UserModel();
+                    
                     loadData(IDUser, model);
+                    if(fromProfile == "1")
+                    {
+                        model.fromProfile = 1;
+                        ViewData["IDUser"] = model.IDUser;
+                        ViewData["UserName"] = model.User_Name;
+                        ViewData["UserEmail"] = model.UserEmail;
+                        ViewData["PhoneNo"] = model.phone_no;
+                        string add1 = model.add_1 != "" ? model.add_1 + ",<br>" : "";
+                        string add2 = model.add_2 != "" ? model.add_2 + ",<br>" : "";
+                        string poscode = model.add_poscode != "" ? model.add_poscode + ", " : "";
+                        string city = model.add_city != "" ? model.add_city + ",<br>" : "";
+                        ViewData["addr"] = add1 + add2 + poscode + city + model.add_state;
+                        ViewData["Position"] = model.User_Cat == 1 ? "ADMINISTRATOR" : model.User_Cat == 2 ? "TECHNICIAN" : "STAFF";
+                        ViewData["HasPic"] = model.HasPicture;
+                    }
                 }
                 else
                 {
@@ -442,8 +492,10 @@ namespace ITMS.Controllers
                 TempData["return_upload_error"] = ex.Message;
                 System.Diagnostics.Debug.WriteLine("ERROR EX PIC: " + ex.Message);
             }
-
-            return View("View");
+            if (fromProfile == "1")            
+                return View("Profile", model);
+            else
+                return View("View");
         }
 
         public void getImage(string id)

@@ -124,6 +124,19 @@ namespace ITMS.Models
                     dt = ds.Tables[0];
                 }
             }
+            else if (item == "report")
+            {
+                string iduser = "";
+                if (HttpContext.Current.Session["IDUser"] != null)
+                    iduser = " and b.IDtechnician=" + HttpContext.Current.Session["IDUser"].ToString() + " and b.ticketStatus='Work Done'";
+                DataSet ds = new DataSet();
+                string sql = "select '0' item_code, 'Please Choose' item_desc union all select a.IDrep item_code, rep_title item_desc from tbl_report a left join tbl_ticket b on a.IDrep=b.IDrep where 1=1" + iduser;
+                ds = GetDataSet(sql, null);
+                if (ds.Tables.Count > 0)
+                {
+                    dt = ds.Tables[0];
+                }
+            }
             return dt;
         }
 

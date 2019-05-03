@@ -314,7 +314,7 @@ namespace ITMS.Controllers
         // GET: Report/Details/5
         public ActionResult Details(string id)
         {
-            TempData.Clear();
+            //TempData.Clear();
             ReportModel model = new ReportModel();
             loadData(id.Replace("r_", ""), model);
             TempData["edit_value"] = 1;
@@ -335,7 +335,7 @@ namespace ITMS.Controllers
                     "(CASE WHEN b.ticketStatus IS NULL THEN 'pending' ELSE b.ticketStatus END)status, " +
                     "(case when b.priority is null then '1' else b.priority end)priority, " +
                     "(case when b.IDtechnician is not null then b.IDtechnician else '0' end)IDtechnician," +
-                    "(case when b.IDtechnician is not null then (select UserName from tbl_admin where IDUser=b.IDtechnician) else '' end)technician" +
+                    "(case when b.IDtechnician is not null then (select UserName from tbl_admin where IDUser=b.IDtechnician) else '' end)technician," +
                     "(case when b.attendanceStatus is not null then b.attendanceStatus else 'No' End)attendanceStatus from tbl_report a " +
                     "left join tbl_ticket b ON a.IDrep=b.IDrep where a.IDrep=" + id;
                 DataTable dt = app.GetDataSet(sql, null).Tables[0];
@@ -408,6 +408,7 @@ namespace ITMS.Controllers
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine("ERROR: " + ex.Message);
                 TempData["edit_error"] = ex.Message;
             }
         }

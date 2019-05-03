@@ -340,6 +340,15 @@
                                     </li>
                                 }
                             }
+                            @if (HttpContext.Current.Session["User_Cat"] != null)
+                            {
+                                if (HttpContext.Current.Session["User_Cat"].ToString() == "2")
+                                {
+                                    <li class="@Html.setClass("TechReport")">
+                                        <a class="nav-link" href="@Url.Action("Index", "TechReport")"><i class="fab fa-fw fa-wpforms"></i>Technician Report <span class="badge badge-success"></span></a>
+                                    </li>
+                                }
+                            }
                         </ul>
                     </div>
                 </nav>

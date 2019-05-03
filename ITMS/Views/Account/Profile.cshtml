@@ -104,6 +104,7 @@
 
                                 </li>
                             </ul>
+                            <button class="btn btn-default" type="button" onclick="$('#edit_emp').show();">Edit Profile</button>
                         </div>
                     </div>
                     <div style="display:none" class="card-body border-top">
@@ -169,65 +170,137 @@
                     </ul>
                     <div class="tab-content" id="pills-tabContent">
                         <div class="tab-pane fade show active" id="pills-campaign" role="tabpanel" aria-labelledby="pills-campaign-tab">
-                            <div class="row">
-                                <div style="display:none" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
-                                    <div class="section-block">
-                                        <h3 class="section-title">My Campaign State</h3>
-                                    </div>
-                                </div>
-                                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h1 class="mb-1">
-                                                @if(ViewData["total"] != null)
+                                <div id="add_pic" data-keyboard="false" aria-hidden="true" class="modal fade hide" style="" data-backdrop="static" role="dialog">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Upload Picture</h5>
+                                            </div>
+                                            <div class="modal-body">
+                                                @using (Html.BeginForm("Picture", "Account", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                                 {
-                                                    @ViewData["total"];
+                                                    @Html.AntiForgeryToken();
+                                                    @Html.Hidden("fromProfile", "1");
+                                                    @Html.Hidden("hidIDUser", Model != null ? Model.IDUser.ToString() : "0");
+                                                    <div class="form-group">
+                                                        @if (Model != null)
+                                                        {
+                                                            if (Model.HasPicture.ToString() == "1" && Model.IDUser.ToString() != "" && Model.IDUser.ToString() != "0")
+                                                            {
+                                                                <center><img name="pic_profile" class="pic_frame" id="pic_profile" src="/Account/getImage/@Model.IDUser.ToString()" alt="profile_pic" /></center>
+                                                            }
+                                                            else
+                                                            {
+                                                                <center><img name="pic_profile" class="pic_frame" id="pic_profile" src="~/Content/assets/images/avatar-1.jpg" alt="profile_pic" /></center>
+                                                            }
+                                                        }
+
+                                                    </div>
+                                                    <div class="custom-file mb-3">
+                                                        <input name="fileUpload" type="file" class="custom-file-input" id="customFile">
+                                                        <label class="custom-file-label" for="customFile">Upload Picture</label>
+                                                    </div>
+                                                    <button id="btnSave" class="btn btn-primary" type="submit">Save Changes</button>
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                                                 }
-                                            </h1>
-                                            <p>TOTAL REPORT</p>
+                                            </div>
+                                            <div class="modal-footer">
+
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                <div id="edit_emp" class="collapse">
+                                    <div class="section-block" id="basicform">
+                                        <h3 class="section-title">Edit Details</h3>
+                                        <p></p>
+                                    </div>
                                     <div class="card">
-                                        <div class="card-body">
-                                            <h1 class="mb-1">
-                                                @if (ViewData["pending"] != null)
+                                        <h5 class="card-header">Personal Details</h5>
+                                        @using (Html.BeginForm("Edit", "Account", FormMethod.Post, new { @name = "FormDetailsUsers" }))
+                                        {
+                                            @Html.AntiForgeryToken();
+                                            @Html.HiddenFor(model => model.fromProfile, "");
+                                            @Html.HiddenFor(model => model.IDUser, "");
+                                            <div class="card-body">
+
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Name</label>
+                                                    @Html.TextBoxFor(model => model.User_Name, new { @class = "form-control", @required = "required" })
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Address Line 1</label>
+                                                    @Html.TextBoxFor(model => model.add_1, new { @class = "form-control" })
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Address Line 2</label>
+                                                    @Html.TextBoxFor(model => model.add_2, new { @class = "form-control" })
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Postcode</label>
+                                                    @Html.TextBoxFor(model => model.add_poscode, new { @class = "form-control" })
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">City</label>
+                                                    @Html.TextBoxFor(model => model.add_city, new { @class = "form-control" })
+
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">State</label>
+                                                    @Html.TextBoxFor(model => model.add_state, new { @class = "form-control" })
+
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Phone No</label>
+                                                    @Html.TextBoxFor(model => model.phone_no, new { @class = "form-control" })
+
+                                                </div>
+
+                                            </div>
+                                            <div class="card-body border-top">
+                                                <h3>Work Details</h3>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Position</label>
+                                                    @if (ViewData["UserCatList"] != null)
+                                                    {
+                                                        @Html.DropDownListFor(model => model.User_Cat, ViewData["UserCatList"] as IEnumerable<SelectListItem>, new { @class = "form-control", @disabled="disabled"});
+                                                        @*@Html.DropDownList("position", ViewData["UserCatList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })*@
+                                                    }
+
+                                                </div>
+                                            </div>
+                                            <div class="card-body border-top">
+                                                <h3>Login Details</h3>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Email</label>
+                                                    @Html.LabelFor(model => model.UserEmail, Model != null ? Model.UserEmail : "", new { @class = "form-control", @type = "email", @required = "required" })
+
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Set Password</label>
+                                                    @Html.TextBoxFor(model => model.UserPassword, new { @class = "form-control", @type = "password", @required = "required" })
+
+                                                </div>
+                                                @*<div class="form-group">
+                    <label class="col-form-label">Password Confirmation</label>
+                    @Html.TextBox("password_confirm", "", new { @class = "form-control", @type = "password" })
+
+                </div>*@
+                                            </div>
+                                            <div class="card-footer border-top">
+                                                <button id="btnSubmit" type="submit" class="btn btn-success">Save Changes</button>
+                                                @if (Model != null)
                                                 {
-                                                    @ViewData["pending"];
+                                                    if (Model.IDUser.ToString() != "" && Model.IDUser.ToString() != "0")
+                                                    {
+                                                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#add_pic">Upload Profile Picture</button>
+                                                    }
                                                 }
-                                            </h1>
-                                            <p>PENDING</p>
-                                        </div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
-                                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h1 class="mb-1">
-                                                @if (ViewData["workdone"] != null)
-                                                {
-                                                    @ViewData["workdone"];
-                                                }
-                                            </h1>
-                                            <p>WORK DONE</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h1 class="mb-1">
-                                                @if (ViewData["inprocess"] != null)
-                                                {
-                                                    @ViewData["inprocess"];
-                                                }
-                                            </h1>
-                                            <p>IN PROCESS</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
                             <div style="display:none" class="section-block">
                                 <h3 class="section-title">Campaign List</h3>
                             </div>

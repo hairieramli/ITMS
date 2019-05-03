@@ -1,0 +1,231 @@
+﻿@model ITMS.Models.TechReportModel
+@{
+    ViewBag.Title = "Technician Report";
+    Layout = "~/Views/Shared/_Layout2.cshtml";
+}
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+        $("#newbtn").click(function () {
+            let el = document.getElementById("add_rep");
+            let inputs = el.getElementsByTagName("input");
+
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].type=="text")
+                    inputs[i].value = "";
+            }
+
+            $("#add_rep").show();
+            $("#edit_rep").hide();
+        });
+
+
+
+        @if(TempData["return_value"] != null)
+        {
+            if((int)TempData["return_value"] <= 0)
+            {
+                @:$("#add_rep").addClass("show");
+                @:$("#btnCreate").notify("Failed to add new Report.", { position: "bottom", className: "error" });
+            }
+            else
+            {
+                @:$("#tblData").notify("Succesfully added new Report", { position: "top center", className: "success", arrowShow: false });
+            }
+        }
+        else if(TempData["return_error"] != null)
+        {
+            @:$("#btnCreate").notify(@TempData["return_error"].ToString(), { position: "bottom", className:"warn" });
+        }
+        else if(TempData["noti_error"] != null)
+        {
+            @:$("#tblData").notify(@TempData["noti_error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
+        }
+        else if(TempData["not_return_value"] != null)
+        {
+
+            if((int)TempData["not_return_value"] > 0)
+            {
+                @:$("#tblData").notify("User has been notified", { position: "top center", className:"success", arrowShow:false});
+            }
+        }
+        else if(TempData["edit_error"] != null)
+        {
+            @:$("#tblData").notify(@TempData["edit_error"].ToString(), { position: "top center", className:"warn", arrowShow:false});
+        }
+        else if(TempData["edit_value"] != null)
+        {
+
+            if((int)TempData["edit_value"] > 0)
+            {
+                @:$("#edit_rep").show();
+            }
+        }
+        else if(TempData["edit_return_error"] != null)
+        {
+            @:$("#edit_rep").show();
+            @:$("#btnSave").notify(@TempData["edit_return_error"].ToString(), { position: "bottom", className:"warn" });
+        }
+        else if(TempData["edit_return_value"] != null)
+        {
+            @:$("#edit_rep").show();
+
+            if((int)TempData["edit_return_value"] > 0)
+            {
+                @:$("#edit_rep").notify("Saved Changes successfully.", { position: "top center", className: "success", arrowShow:false });
+            }
+        }
+        else if(TempData["del_error"] != null)
+        {
+            @:$("#edit_rep").show();
+            @:$("#btnDelete").notify(@TempData["del_error"].ToString(), { position: "bottom", className:"warn" });
+        }
+        else if(TempData["del_return_value"] != null)
+        {
+
+            if((int)TempData["del_return_value"] > 0)
+            {
+                @:$("#tblData").notify("Succesfully removed Report", { position: "top center", className:"success", arrowShow:false});
+            }
+            else if ((int)TempData["del_return_value"] <= 0)
+            {
+                @*@:$("#edit_rep").show();*@
+                @:$("#btnDelete").notify("Failed to remove Report", { position: "bottom", className:"error" });
+            }
+        }
+    }
+
+
+    );
+
+
+</script>
+<link href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
+<script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+@*<link href="~/Content/assets/vendor/datatables/css/dataTables.bootstrap4.css" rel="stylesheet" />
+    <script src="~/Content/assets/vendor/datatables/js/dataTables.bootstrap4.min.js"></script>*@
+<div class="page-header">
+    <div class="pageheader-title">
+        <h2>@ViewBag.Title</h2>
+    </div>
+    <div class="page-breadcrumb">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#" class="breadcrumb-link">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Report</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div>
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            @if (HttpContext.Current.Session["User_Cat"] != null)
+            {
+                if (HttpContext.Current.Session["User_Cat"].ToString() == "2")
+                {
+                    <a id="newbtn" class="btn btn-app btn-info">
+                        <i class="fa fa-edit"></i>
+                        New Report
+                    </a>
+                }
+            }
+
+        </div>
+    </div>
+    <div class="row">
+        &nbsp;
+    </div>
+    <div id="add_rep" class="card collapse">
+        <h5 class="card-header">Submit New Report</h5>
+        <div class="card-body">
+            @using (Html.BeginForm("Create", "TechReport", FormMethod.Post, new { @name = "FormRep" }))
+            {
+                <div class="form-group">
+                    <label class="col-form-label">Title</label>
+                    @Html.DropDownList("ddl_rep", ViewData["reportList"] as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                </div>
+                <div class="form-group">
+                    <label class="col-form-label">Description</label>
+                    @Html.TextArea("rep_desc", "", new { @class = "form-control", @required = "required", @row = "5", @width = "100%" })
+                </div>
+                <div class="form-group">
+
+                </div>
+                <button id="btnCreate" type="submit" class="btn btn-primary" name="Submit">Add Report</button>
+            }
+        </div>
+
+    </div>
+    <div id="edit_rep" class="card collapse">
+        <h5 class="card-header">Report Details</h5>
+        <div class="card-body">
+            @using (Html.BeginForm("Edit", "TechReport", FormMethod.Post, new { @name = "FormEditRep" }))
+            {
+                @Html.AntiForgeryToken();
+                @Html.HiddenFor(model => model.id, "");
+                <div class="form-group">
+                    <label class="col-form-label">Title</label>
+                    @Html.DropDownList("ddl_rep", ViewData["reportList"] as IEnumerable<SelectListItem>, new { @class = "form-control", @disabled = "disabled" })
+                </div>
+                <div class="form-group">
+                    <label class="col-form-label">Description</label>
+                    @Html.TextAreaFor(model => model.rep_desc, 5, 10, new { @class = "form-control", @required = "required", @row = "5", @width = "100%" })
+                </div>
+                <div class="form-group">
+
+                </div>
+                <button id="btnSave" type="submit" class="btn btn-primary" name="Submit">Save Changes</button>
+                <a id="btnDelete" href="/TechReport/Delete/@(Model != null ? Model.id:0)" class="btn btn-danger">Remove Report</a>
+            }
+        </div>
+
+    </div>
+
+
+    <div class="card">
+        <h5 class="card-header">List of Technician Reports</h5>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tblData" class="table" width="100%">
+                    <thead>
+                        <tr>
+                            @*<th>ID</th>*@
+                            <th style="min-width:40%">Title</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                </table>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        t = $('#tblData').DataTable({
+                            stateSave: true, "info": true, dom: "ftrip", "processing": true,
+                            "serverSide": true,
+                            "ajax": {
+                                "url": "/TechReport/List",
+                                "dataType": "json",
+                                "data": "data"
+                            }
+                            //"order": [[1, 'asc']], select: {
+                            //    style: 'single'
+                            //},
+                            //"scrollX": true,
+                            //"scrollCollapse": true
+                        });
+
+                    });
+
+
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        &nbsp;
+    </div>
+
+</div>

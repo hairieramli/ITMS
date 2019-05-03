@@ -75,6 +75,11 @@ namespace ITMS.Models
             get;set;
         }
 
+        public int fromProfile
+        {
+            get;set;
+        }
+
         public DataRow getUser(string id)
         {
             DataSet ds = new DataSet();
