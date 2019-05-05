@@ -456,6 +456,7 @@ namespace ITMS.Controllers
                             string result = app.Exec(strQuery, para);
                             if (result == "")
                             {
+                                HttpContext.Session["Haspic"] = 1;
                                 TempData["return_upload"] = 1;
                             }
                             else

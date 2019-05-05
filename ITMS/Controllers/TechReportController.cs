@@ -21,8 +21,6 @@ namespace ITMS.Controllers
         // GET: TechReport
         public ActionResult Index()
         {
-            TempData.Clear();
-            ViewData.Clear();
             loadDD();
             return View();
         }
@@ -243,15 +241,18 @@ namespace ITMS.Controllers
             {
                 int return_value = 0;
                 string iduser = "";
-                if(HttpContext.Session["IDUser"] != null)
+                string username = "";
+                if(HttpContext.Session["IDUser"] != null && HttpContext.Session["UserName"] != null)
                 {
                     iduser = HttpContext.Session["IDUser"].ToString();
-                    string sql = "insert into tbl_tech_report(IDrep, rep_desc, IDTech) VALUES(@IDrep, @rep_desc, @IDTech)";
+                    username = HttpContext.Session["UserName"].ToString();
+                    string sql = "insert into tbl_tech_report(IDrep, rep_desc, IDTech, UserName) VALUES(@IDrep, @rep_desc, @IDTech, @UserName)";
                     List<SqlParameter> para = new List<SqlParameter>()
                     {
                         new SqlParameter(){ParameterName="@IDrep", SqlDbType=SqlDbType.Int, Value=form["ddl_rep"].ToString()},
                         new SqlParameter(){ParameterName="@rep_desc", SqlDbType=SqlDbType.VarChar, Value=form["rep_desc"].ToString().Trim()},
-                        new SqlParameter(){ParameterName="@IDTech", SqlDbType=SqlDbType.Int, Value=iduser}
+                        new SqlParameter(){ParameterName="@IDTech", SqlDbType=SqlDbType.Int, Value=iduser},
+                        new SqlParameter(){ParameterName="@UserName", SqlDbType=SqlDbType.VarChar, Value=form["rep_desc"].ToString().Trim()}
                     };
                     string result = app.Exec(sql, para);
                     if (result == "")
