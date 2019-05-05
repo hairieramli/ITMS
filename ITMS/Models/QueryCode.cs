@@ -6,6 +6,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 using System.Web.Mvc;
+using System.Net;
+using System.Net.Mail;
+
 
 namespace ITMS.Models
 {
@@ -54,6 +57,11 @@ namespace ITMS.Models
 
         public void NotifyUser(string userID, string module, string desc)
         {
+            if(HttpContext.Current.Session["UserEmail"] != null && HttpContext.Current.Session["UserName"] != null)
+            {
+                Email(HttpContext.Current.Session["UserEmail"].ToString(), "ITMS Notification", HttpContext.Current.Session["UserName"].ToString() + " " + desc);
+            }
+
             using (SqlConnection Sqlcon = new SqlConnection(DefaultConnectionString))
             {
                 List<SqlParameter> para = new List<SqlParameter>()
@@ -173,6 +181,34 @@ namespace ITMS.Models
             }
 
             return ResultStr;
+        }
+
+
+        public string Email(string email, string subject, string Message)
+        {
+            var body = "<p>Email From: {0} ({1})</p><p>Message:</p><p>{2}</p>";
+            var message = new MailMessage();
+            message.To.Add(new MailAddress(email));  // replace with valid value 
+            message.From = new MailAddress("itms.adm@gmail.com");  // replace with valid value
+            message.Subject = subject.Trim();
+            message.Body = string.Format(body, "ITMS", email, Message.Trim());
+            message.IsBodyHtml = false;
+
+            using (var smtp = new SmtpClient())
+            {
+                var credential = new NetworkCredential
+                {
+                    UserName = "itms.adm@gmail.com",  // replace with valid value
+                    Password = "makanmakan28"  // replace with valid value
+                };
+                smtp.Credentials = credential;
+                smtp.Host = "smtp.gmail.com";
+                smtp.Port = 587;
+                smtp.EnableSsl = true;
+                smtp.Send("itms.adm@gmail.com", "erydj28@gmail.com", subject, Message);
+                
+            }
+            return "";
         }
     }
 }

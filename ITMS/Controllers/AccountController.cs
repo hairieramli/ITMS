@@ -130,6 +130,8 @@ namespace ITMS.Controllers
                         sql = "UPDATE tbl_admin SET lastLoginDate='"+ DateTime.Now +"' WHERE IDUser=" + dr["IDUser"].ToString();
                         string res = app.Exec(sql, null);
 
+                        //app.Email("erydj28@gmail.com", "CUBA TEST", "TEST");
+
                         return Redirect(FormsAuthentication.GetRedirectUrl(dr["UserEmail"].ToString(), false));
                     }
                     else
