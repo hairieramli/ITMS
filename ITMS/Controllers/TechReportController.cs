@@ -252,7 +252,7 @@ namespace ITMS.Controllers
                         new SqlParameter(){ParameterName="@IDrep", SqlDbType=SqlDbType.Int, Value=form["ddl_rep"].ToString()},
                         new SqlParameter(){ParameterName="@rep_desc", SqlDbType=SqlDbType.VarChar, Value=form["rep_desc"].ToString().Trim()},
                         new SqlParameter(){ParameterName="@IDTech", SqlDbType=SqlDbType.Int, Value=iduser},
-                        new SqlParameter(){ParameterName="@UserName", SqlDbType=SqlDbType.VarChar, Value=form["rep_desc"].ToString().Trim()}
+                        new SqlParameter(){ParameterName="@UserName", SqlDbType=SqlDbType.VarChar, Value=HttpContext.Session["UserName"].ToString().Trim()}
                     };
                     string result = app.Exec(sql, para);
                     if (result == "")
