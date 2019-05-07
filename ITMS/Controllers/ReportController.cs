@@ -22,8 +22,7 @@ namespace ITMS.Controllers
         // GET: Report
         public ActionResult Index()
         {
-            TempData.Clear();
-            ViewData.Clear();
+
             loadDD();
 
             return View();
